@@ -67,9 +67,12 @@ interface LogoGenerationFormProps {
   businessDescription: string;
   onLogoGenerated: (logos: GeneratedLogo[]) => void;
   onCancel: () => void;
+  generatedLogos: GeneratedLogo[];
+  selectedLogo: GeneratedLogo | null;
+  onLogoSelect: (logo: GeneratedLogo, decision: 'final' | 'direction') => void;
 }
 
-function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated, onCancel }: LogoGenerationFormProps) {
+function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated, onCancel, generatedLogos, selectedLogo, onLogoSelect }: LogoGenerationFormProps) {
   const { toast } = useToast();
   
   const form = useForm<LogoPreferences>({
@@ -278,6 +281,87 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
           </div>
         </form>
       </Form>
+
+      {/* Logo Gallery */}
+      {generatedLogos.length > 0 && (
+        <div className="space-y-4 mt-8 pt-6 border-t">
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium">Generated Logo Ideas</h3>
+            <Badge variant="secondary">{generatedLogos.length} Options</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Select a logo that you'd like to use as your final design or as creative direction.
+          </p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {generatedLogos.map((logo) => (
+              <Card 
+                key={logo.id} 
+                className={`cursor-pointer transition-all hover-elevate ${
+                  selectedLogo?.id === logo.id 
+                    ? 'ring-2 ring-primary bg-primary/5' 
+                    : 'hover:shadow-md'
+                }`}
+                data-testid={`card-logo-option-${logo.id}`}
+              >
+                <CardContent className="p-3">
+                  <div className="aspect-square rounded-lg overflow-hidden bg-gray-50 mb-3">
+                    <img 
+                      src={logo.dataUrl} 
+                      alt="Generated logo option"
+                      className="w-full h-full object-contain"
+                      data-testid={`image-logo-${logo.id}`}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => onLogoSelect(logo, 'final')}
+                        className="flex-1"
+                        data-testid={`button-select-final-${logo.id}`}
+                      >
+                        <Check className="w-3 h-3 mr-1" />
+                        Use This
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onLogoSelect(logo, 'direction')}
+                        className="flex-1"
+                        data-testid={`button-select-direction-${logo.id}`}
+                      >
+                        <ArrowRight className="w-3 h-3 mr-1" />
+                        Direction
+                      </Button>
+                    </div>
+                    {selectedLogo?.id === logo.id && (
+                      <div className="text-xs text-center text-primary font-medium">
+                        Selected
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          <div className="text-center pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                // Clear current results to allow new generation
+                onLogoGenerated([]);
+              }}
+              data-testid="button-generate-more-logos"
+            >
+              <Wand2 className="w-4 h-4 mr-2" />
+              Generate More Ideas
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -713,6 +797,12 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                       setGeneratedLogos(logos);
                     }}
                     onCancel={() => setLogoPath(null)}
+                    generatedLogos={generatedLogos}
+                    selectedLogo={selectedLogo}
+                    onLogoSelect={(logo, decision) => {
+                      setSelectedLogo(logo);
+                      setLogoDecision(decision);
+                    }}
                   />
                 )}
               </div>
