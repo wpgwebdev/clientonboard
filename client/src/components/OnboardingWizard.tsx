@@ -2,14 +2,24 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Sparkles, CheckCircle, Download, Upload, Palette, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, CheckCircle, Download, Upload, Palette, Check, Wand2, Loader2 } from "lucide-react";
 import ProgressBar, { type Step } from "./ProgressBar";
 import SiteTypeSelector from "./SiteTypeSelector";
 import SitemapBuilder, { type Page } from "./SitemapBuilder";
 import DesignStyleSelector, { type DesignPreferences } from "./DesignStyleSelector";
 import CreativeBriefReview, { type CreativeBriefData } from "./CreativeBriefReview";
 import FileUpload from "./FileUpload";
-import { type LogoPreferences, type GeneratedLogo, type LogoSelection } from "@shared/schema";
+import { type LogoPreferences, type GeneratedLogo, type LogoSelection, logoPreferencesSchema } from "@shared/schema";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface OnboardingWizardProps {
   className?: string;
@@ -42,6 +52,235 @@ const suggestedPages: Page[] = [
   { id: 'team', name: 'Team', path: '/team', required: false },
   { id: 'pricing', name: 'Pricing', path: '/pricing', required: false }
 ];
+
+const logoTypes = [
+  "wordmark", "lettermark", "pictorial", "abstract", "mascot", "combination", "emblem"
+];
+
+const logoStyles = [
+  "modern", "classic", "minimalist", "vintage", "playful", "elegant", "bold", "organic", 
+  "geometric", "hand-drawn", "tech", "luxury"
+];
+
+interface LogoGenerationFormProps {
+  businessName: string;
+  businessDescription: string;
+  onLogoGenerated: (logos: GeneratedLogo[]) => void;
+  onCancel: () => void;
+}
+
+function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated, onCancel }: LogoGenerationFormProps) {
+  const { toast } = useToast();
+  
+  const form = useForm<LogoPreferences>({
+    resolver: zodResolver(logoPreferencesSchema),
+    defaultValues: {
+      types: [],
+      styles: [],
+      colors: "",
+      inspirations: [],
+      useReference: false
+    }
+  });
+
+  const generateLogosMutation = useMutation({
+    mutationFn: async (data: LogoPreferences) => {
+      const response = await apiRequest('/api/logo/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          businessName,
+          businessDescription,
+          preferences: data
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to generate logos');
+      }
+      
+      return response.json() as Promise<{ logos: GeneratedLogo[]; prompt: string }>;
+    },
+    onSuccess: (data) => {
+      onLogoGenerated(data.logos);
+      toast({
+        title: "Logos Generated!",
+        description: `Created ${data.logos.length} logo variations for your review.`
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Generation Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const onSubmit = (data: LogoPreferences) => {
+    generateLogosMutation.mutate(data);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-medium">Generate Logo Ideas</h3>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={onCancel}
+          data-testid="button-change-logo-path"
+        >
+          Change Option
+        </Button>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Logo Types */}
+          <FormField
+            control={form.control}
+            name="types"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Logo Types <span className="text-destructive">*</span></FormLabel>
+                <FormDescription>Select at least one logo type that fits your brand</FormDescription>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {logoTypes.map((type) => (
+                    <div key={type} className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={field.value?.includes(type) || false}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            field.onChange([...(field.value || []), type]);
+                          } else {
+                            field.onChange(field.value?.filter((t) => t !== type) || []);
+                          }
+                        }}
+                        data-testid={`checkbox-logo-type-${type}`}
+                      />
+                      <label className="text-sm capitalize">{type.replace('-', ' ')}</label>
+                    </div>
+                  ))}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Logo Styles */}
+          <FormField
+            control={form.control}
+            name="styles"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Logo Styles <span className="text-destructive">*</span></FormLabel>
+                <FormDescription>Select at least one style that matches your vision</FormDescription>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {logoStyles.map((style) => (
+                    <div key={style} className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={field.value?.includes(style) || false}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            field.onChange([...(field.value || []), style]);
+                          } else {
+                            field.onChange(field.value?.filter((s) => s !== style) || []);
+                          }
+                        }}
+                        data-testid={`checkbox-logo-style-${style}`}
+                      />
+                      <label className="text-sm capitalize">{style}</label>
+                    </div>
+                  ))}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Colors */}
+          <FormField
+            control={form.control}
+            name="colors"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Color Preferences</FormLabel>
+                <FormDescription>Describe your preferred colors (e.g., "blue and white", "earth tones", "vibrant")</FormDescription>
+                <FormControl>
+                  <Input 
+                    placeholder="e.g., blue and silver, warm earth tones, monochrome"
+                    {...field}
+                    data-testid="input-logo-colors"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Inspirations */}
+          <FormField
+            control={form.control}
+            name="inspirations"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Design Inspirations</FormLabel>
+                <FormDescription>Optional: Any specific concepts, symbols, or ideas for your logo</FormDescription>
+                <FormControl>
+                  <Textarea 
+                    placeholder="e.g., mountain peaks, circuit boards, handwritten script, vintage badges..."
+                    className="resize-none"
+                    rows={3}
+                    value={field.value?.join(', ') || ''}
+                    onChange={(e) => {
+                      const inspirations = e.target.value
+                        .split(',')
+                        .map(s => s.trim())
+                        .filter(Boolean);
+                      field.onChange(inspirations);
+                    }}
+                    data-testid="input-logo-inspirations"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Generate Button */}
+          <div className="flex gap-3">
+            <Button 
+              type="submit" 
+              disabled={generateLogosMutation.isPending}
+              data-testid="button-generate-logos"
+            >
+              {generateLogosMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Wand2 className="w-4 h-4 mr-2" />
+                  Generate Logos
+                </>
+              )}
+            </Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel}
+              data-testid="button-cancel-generation"
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+}
 
 export default function OnboardingWizard({ className = "" }: OnboardingWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -465,35 +704,16 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                   </div>
                 )}
 
-                {/* Generate Path - Placeholder for now */}
+                {/* Generate Path */}
                 {logoPath === 'generate' && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium">Generate Logo Ideas</h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setLogoPath(null)}
-                        data-testid="button-change-logo-path"
-                      >
-                        Change Option
-                      </Button>
-                    </div>
-                    <div className="p-8 border-2 border-dashed rounded-lg text-center">
-                      <Sparkles className="w-12 h-12 mx-auto mb-4 text-primary/60" />
-                      <h3 className="text-lg font-medium mb-2">Logo Generation Coming Soon</h3>
-                      <p className="text-muted-foreground mb-4">
-                        AI-powered logo generation based on your business description and preferences.
-                      </p>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setLogoPath('upload')}
-                        data-testid="button-use-upload-instead"
-                      >
-                        Upload Logo Instead
-                      </Button>
-                    </div>
-                  </div>
+                  <LogoGenerationForm
+                    businessName={businessName}
+                    businessDescription={businessDescription}
+                    onLogoGenerated={(logos) => {
+                      setGeneratedLogos(logos);
+                    }}
+                    onCancel={() => setLogoPath(null)}
+                  />
                 )}
               </div>
             </CardContent>
