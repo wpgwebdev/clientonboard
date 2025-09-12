@@ -10,15 +10,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Business name generation endpoint
   app.post("/api/generate-names", async (req, res) => {
     try {
-      const { description } = req.body;
+      const { description, nameIdea } = req.body;
       
-      if (!description || typeof description !== 'string' || description.trim().length === 0) {
+      // Validate input - need at least description OR nameIdea
+      if ((!description || description.trim().length === 0) && (!nameIdea || nameIdea.trim().length === 0)) {
         return res.status(400).json({ 
-          error: "Business description is required" 
+          error: "Business description or name idea is required" 
         });
       }
 
-      const prompt = `Based on this business description: "${description.trim()}"
+      let prompt = "";
+      
+      if (nameIdea && nameIdea.trim().length > 0) {
+        // Generate variations based on business name idea
+        const businessContext = description && description.trim().length > 0 
+          ? `\n\nBusiness Context: "${description.trim()}"`
+          : "";
+        
+        prompt = `Based on this business name idea: "${nameIdea.trim()}"${businessContext}
+
+Generate 5 creative variations and alternatives for this business name. The names should be:
+- Similar in style and feeling to the original idea
+- Memorable and brandable
+- Professional and trustworthy
+- Easy to spell and pronounce
+- Available as potential domain names (avoid very common words)
+- Reflect the business's purpose and values
+
+Respond with JSON in this format:
+{
+  "names": ["Name 1", "Name 2", "Name 3", "Name 4", "Name 5"]
+}`;
+      } else {
+        // Generate names based on business description only
+        prompt = `Based on this business description: "${description.trim()}"
 
 Generate 5 creative, professional business names that would be suitable for this business. The names should be:
 - Memorable and brandable
@@ -31,9 +56,10 @@ Respond with JSON in this format:
 {
   "names": ["Name 1", "Name 2", "Name 3", "Name 4", "Name 5"]
 }`;
+      }
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -45,12 +71,21 @@ Respond with JSON in this format:
           }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.8, // Higher temperature for more creative names
-        max_tokens: 200
+        temperature: 0.8, // Restore creative temperature for name generation
+        max_tokens: 300 // Using standard parameter for GPT-4o
       });
 
-      const content = response.choices[0].message.content;
+      console.log("OpenAI response:", JSON.stringify(response, null, 2));
+      
+      const content = response.choices?.[0]?.message?.content;
       if (!content) {
+        console.error("Failed to get content from response:", {
+          choices: response.choices,
+          hasChoices: !!response.choices,
+          choicesLength: response.choices?.length,
+          firstChoice: response.choices?.[0],
+          message: response.choices?.[0]?.message
+        });
         throw new Error("No content received from AI");
       }
       

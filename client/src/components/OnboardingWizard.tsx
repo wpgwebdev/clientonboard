@@ -49,6 +49,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const [businessName, setBusinessName] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
   const [hasBusinessName, setHasBusinessName] = useState<boolean | null>(null);
+  const [businessNameIdea, setBusinessNameIdea] = useState("");
   const [generatedNames, setGeneratedNames] = useState<string[]>([]);
   const [isGeneratingNames, setIsGeneratingNames] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -107,7 +108,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   };
 
   const generateBusinessNames = async () => {
-    if (!businessDescription.trim()) return;
+    // Need either business description or business name idea
+    if (!businessDescription.trim() && !businessNameIdea.trim()) return;
     
     setIsGeneratingNames(true);
     try {
@@ -117,7 +119,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          description: businessDescription 
+          description: businessDescription.trim() || undefined,
+          nameIdea: businessNameIdea.trim() || undefined
         })
       });
       
@@ -126,20 +129,26 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         setGeneratedNames(data.names || []);
       } else {
         console.error('Failed to generate business names');
-        // Fallback names if API fails
+        // Fallback names based on what input we have
+        const baseName = businessNameIdea.trim() || businessDescription.split(' ')[0] || "Business";
         setGeneratedNames([
-          `${businessDescription.split(' ')[0]} Co`,
-          `${businessDescription.split(' ')[0]} Solutions`,
-          `${businessDescription.split(' ')[0]} Studio`,
+          `${baseName} Co`,
+          `${baseName} Solutions`,
+          `${baseName} Studio`,
+          `${baseName} Group`,
+          `${baseName} Pro`
         ]);
       }
     } catch (error) {
       console.error('Error generating business names:', error);
       // Fallback names
+      const baseName = businessNameIdea.trim() || businessDescription.split(' ')[0] || "Business";
       setGeneratedNames([
-        "Your Business Co",
-        "Your Business Solutions", 
-        "Your Business Studio"
+        `${baseName} Co`,
+        `${baseName} Solutions`, 
+        `${baseName} Studio`,
+        `${baseName} Group`,
+        `${baseName} Pro`
       ]);
     } finally {
       setIsGeneratingNames(false);
@@ -259,11 +268,31 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
               {/* Fourth: Name Generation (if they don't have one) */}
               {hasBusinessName === false && (
                 <div>
+                  <label className="text-sm font-medium mb-3 block">Business Name Generation *</label>
+                  
+                  {/* Business Name Idea Input */}
+                  <div className="mb-4">
+                    <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                      Do you have a business name idea? (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 'Creative Edge' or 'Digital Boost' - we'll generate variations"
+                      value={businessNameIdea}
+                      onChange={(e) => setBusinessNameIdea(e.target.value)}
+                      className="w-full p-3 border rounded-md"
+                      data-testid="input-business-name-idea"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      If you have a rough idea for a name, enter it here and we'll generate creative variations
+                    </p>
+                  </div>
+
                   <div className="flex items-center justify-between mb-3">
-                    <label className="text-sm font-medium">Generated Business Names *</label>
+                    <label className="text-sm font-medium">AI-Generated Names</label>
                     <Button
                       onClick={generateBusinessNames}
-                      disabled={isGeneratingNames || !businessDescription.trim()}
+                      disabled={isGeneratingNames || (!businessDescription.trim() && !businessNameIdea.trim())}
                       size="sm"
                       variant="outline"
                       data-testid="button-generate-names"
@@ -274,19 +303,38 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                   
                   {generatedNames.length === 0 && !isGeneratingNames && (
                     <div className="p-4 border rounded-md text-center text-muted-foreground">
-                      Click "Generate Names" to get AI-powered suggestions based on your business description
+                      <div className="space-y-2">
+                        <p>Click "Generate Names" to get AI-powered suggestions</p>
+                        <p className="text-xs">
+                          {businessNameIdea.trim() 
+                            ? `Based on your idea "${businessNameIdea}" and business description`
+                            : "Based on your business description"
+                          }
+                        </p>
+                      </div>
                     </div>
                   )}
                   
                   {isGeneratingNames && (
                     <div className="p-4 border rounded-md text-center">
                       <Sparkles className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
-                      <p className="text-sm text-muted-foreground">Generating creative names for your business...</p>
+                      <p className="text-sm text-muted-foreground">
+                        {businessNameIdea.trim() 
+                          ? `Generating creative variations of "${businessNameIdea}"...`
+                          : "Generating creative names for your business..."
+                        }
+                      </p>
                     </div>
                   )}
                   
                   {generatedNames.length > 0 && (
                     <div className="space-y-2">
+                      <div className="text-xs text-muted-foreground mb-2">
+                        {businessNameIdea.trim() 
+                          ? `Variations based on "${businessNameIdea}"`
+                          : "Names based on your business description"
+                        }
+                      </div>
                       {generatedNames.map((name, index) => (
                         <button
                           key={index}
@@ -298,7 +346,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         </button>
                       ))}
                       <div className="pt-2">
-                        <label className="text-xs font-medium text-muted-foreground mb-2 block">Or enter a custom name:</label>
+                        <label className="text-xs font-medium text-muted-foreground mb-2 block">Or enter a completely different name:</label>
                         <input
                           type="text"
                           placeholder="Enter your preferred business name"
