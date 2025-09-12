@@ -1,10 +1,88 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import OpenAI from "openai";
+
+// OpenAI integration - the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  // Business name generation endpoint
+  app.post("/api/generate-names", async (req, res) => {
+    try {
+      const { description } = req.body;
+      
+      if (!description || typeof description !== 'string' || description.trim().length === 0) {
+        return res.status(400).json({ 
+          error: "Business description is required" 
+        });
+      }
+
+      const prompt = `Based on this business description: "${description.trim()}"
+
+Generate 5 creative, professional business names that would be suitable for this business. The names should be:
+- Memorable and brandable
+- Professional and trustworthy
+- Easy to spell and pronounce
+- Available as potential domain names (avoid very common words)
+- Reflect the business's purpose and values
+
+Respond with JSON in this format:
+{
+  "names": ["Name 1", "Name 2", "Name 3", "Name 4", "Name 5"]
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [
+          {
+            role: "system",
+            content: "You are a creative business naming expert. Generate professional, memorable business names that would work well for branding and marketing."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.8, // Higher temperature for more creative names
+        max_tokens: 200
+      });
+
+      const content = response.choices[0].message.content;
+      if (!content) {
+        throw new Error("No content received from AI");
+      }
+      
+      const result = JSON.parse(content);
+      
+      // Validate the response structure
+      if (!result.names || !Array.isArray(result.names) || result.names.length === 0) {
+        throw new Error("Invalid response format from AI");
+      }
+
+      res.json({ 
+        names: result.names.slice(0, 5) // Ensure we only return max 5 names
+      });
+
+    } catch (error) {
+      console.error("Error generating business names:", error);
+      
+      // Provide fallback names if AI fails
+      const fallbackNames = [
+        "Prime Solutions",
+        "Elite Services",
+        "Apex Partners",
+        "Summit Group",
+        "Pinnacle Co"
+      ];
+
+      res.json({ 
+        names: fallbackNames,
+        fallback: true
+      });
+    }
+  });
 
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)

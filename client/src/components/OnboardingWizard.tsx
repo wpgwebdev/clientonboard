@@ -48,6 +48,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   // Form data state
   const [businessName, setBusinessName] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
+  const [hasBusinessName, setHasBusinessName] = useState<boolean | null>(null);
+  const [generatedNames, setGeneratedNames] = useState<string[]>([]);
+  const [isGeneratingNames, setIsGeneratingNames] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [selectedSiteType, setSelectedSiteType] = useState<string>("");
   const [pages, setPages] = useState<Page[]>(initialPages);
@@ -65,7 +68,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const isStepComplete = (stepId: number): boolean => {
     switch (stepId) {
       case 1: return true; // Welcome step is always complete
-      case 2: return businessName.trim() !== "" && businessDescription.trim() !== "";
+      case 2: return businessDescription.trim() !== "" && 
+                     businessName.trim() !== "" && 
+                     hasBusinessName !== null;
       case 3: return logoFile !== null;
       case 4: return selectedSiteType !== "";
       case 5: return pages.length >= 2;
@@ -98,6 +103,46 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     if (stepId <= currentStep || completedSteps.has(stepId - 1)) {
       setCurrentStep(stepId);
       console.log('Jumping to step:', stepId);
+    }
+  };
+
+  const generateBusinessNames = async () => {
+    if (!businessDescription.trim()) return;
+    
+    setIsGeneratingNames(true);
+    try {
+      const response = await fetch('/api/generate-names', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          description: businessDescription 
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratedNames(data.names || []);
+      } else {
+        console.error('Failed to generate business names');
+        // Fallback names if API fails
+        setGeneratedNames([
+          `${businessDescription.split(' ')[0]} Co`,
+          `${businessDescription.split(' ')[0]} Solutions`,
+          `${businessDescription.split(' ')[0]} Studio`,
+        ]);
+      }
+    } catch (error) {
+      console.error('Error generating business names:', error);
+      // Fallback names
+      setGeneratedNames([
+        "Your Business Co",
+        "Your Business Solutions", 
+        "Your Business Studio"
+      ]);
+    } finally {
+      setIsGeneratingNames(false);
     }
   };
 
@@ -152,17 +197,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
               <CardTitle>Tell Us About Your Business</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Business Name *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Acme Design Studio"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  className="w-full p-3 border rounded-md"
-                  data-testid="input-business-name"
-                />
-              </div>
+              {/* First: Business Description */}
               <div>
                 <label className="text-sm font-medium mb-2 block">Business Description *</label>
                 <textarea
@@ -174,10 +209,115 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                   data-testid="textarea-business-description"
                 />
               </div>
-              {businessName && (
+
+              {/* Second: Ask if they have a business name */}
+              {businessDescription.trim() && (
+                <div>
+                  <label className="text-sm font-medium mb-3 block">Do you have a business name? *</label>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => {
+                        setHasBusinessName(true);
+                        setGeneratedNames([]);
+                      }}
+                      className={`w-full p-3 text-left border rounded-md hover-elevate ${hasBusinessName === true ? 'border-primary bg-primary/10' : 'border-border'}`}
+                      data-testid="button-has-business-name-yes"
+                    >
+                      <span className="font-medium">Yes, I have a business name</span>
+                      <p className="text-sm text-muted-foreground mt-1">I'll enter my existing business name</p>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setHasBusinessName(false);
+                        setBusinessName("");
+                      }}
+                      className={`w-full p-3 text-left border rounded-md hover-elevate ${hasBusinessName === false ? 'border-primary bg-primary/10' : 'border-border'}`}
+                      data-testid="button-has-business-name-no"
+                    >
+                      <span className="font-medium">No, I need help creating one</span>
+                      <p className="text-sm text-muted-foreground mt-1">Generate suggestions based on my business description</p>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Third: Business Name Input (if they have one) */}
+              {hasBusinessName === true && (
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Business Name *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Acme Design Studio"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    className="w-full p-3 border rounded-md"
+                    data-testid="input-business-name"
+                  />
+                </div>
+              )}
+
+              {/* Fourth: Name Generation (if they don't have one) */}
+              {hasBusinessName === false && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-medium">Generated Business Names *</label>
+                    <Button
+                      onClick={generateBusinessNames}
+                      disabled={isGeneratingNames || !businessDescription.trim()}
+                      size="sm"
+                      variant="outline"
+                      data-testid="button-generate-names"
+                    >
+                      {isGeneratingNames ? "Generating..." : "Generate Names"}
+                    </Button>
+                  </div>
+                  
+                  {generatedNames.length === 0 && !isGeneratingNames && (
+                    <div className="p-4 border rounded-md text-center text-muted-foreground">
+                      Click "Generate Names" to get AI-powered suggestions based on your business description
+                    </div>
+                  )}
+                  
+                  {isGeneratingNames && (
+                    <div className="p-4 border rounded-md text-center">
+                      <Sparkles className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
+                      <p className="text-sm text-muted-foreground">Generating creative names for your business...</p>
+                    </div>
+                  )}
+                  
+                  {generatedNames.length > 0 && (
+                    <div className="space-y-2">
+                      {generatedNames.map((name, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setBusinessName(name)}
+                          className={`w-full p-3 text-left border rounded-md hover-elevate ${businessName === name ? 'border-primary bg-primary/10' : 'border-border'}`}
+                          data-testid={`button-select-name-${index}`}
+                        >
+                          <span className="font-medium">{name}</span>
+                        </button>
+                      ))}
+                      <div className="pt-2">
+                        <label className="text-xs font-medium text-muted-foreground mb-2 block">Or enter a custom name:</label>
+                        <input
+                          type="text"
+                          placeholder="Enter your preferred business name"
+                          value={generatedNames.includes(businessName) ? "" : businessName}
+                          onChange={(e) => setBusinessName(e.target.value)}
+                          className="w-full p-2 text-sm border rounded-md"
+                          data-testid="input-custom-business-name"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* AI Suggestion */}
+              {businessName && businessDescription && (
                 <div className="p-4 bg-primary/10 rounded-lg">
                   <p className="text-sm">
-                    <strong>AI Suggestion:</strong> Based on "{businessName}", we suggest focusing on professional credibility and clear service communication.
+                    <strong>AI Insight:</strong> Based on "{businessName}" and your business description, we suggest focusing on professional credibility and clear service communication in your website design.
                   </p>
                 </div>
               )}
