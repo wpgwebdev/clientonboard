@@ -88,13 +88,10 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
 
   const generateLogosMutation = useMutation({
     mutationFn: async (data: LogoPreferences) => {
-      const response = await apiRequest('/api/logo/generate', {
-        method: 'POST',
-        body: JSON.stringify({
-          businessName,
-          businessDescription,
-          preferences: data
-        })
+      const response = await apiRequest('POST', '/api/logo/generate', {
+        businessName,
+        description: businessDescription,
+        preferences: data
       });
       
       if (!response.ok) {

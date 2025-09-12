@@ -22,7 +22,7 @@ export const logoPreferencesSchema = z.object({
   types: z.array(z.enum([
     'wordmark', 
     'lettermark', 
-    'logomark', 
+    'pictorial', 
     'combination', 
     'emblem', 
     'abstract', 
@@ -30,13 +30,17 @@ export const logoPreferencesSchema = z.object({
   ])).min(1, "Please select at least one logo type"),
   styles: z.array(z.enum([
     'modern',
-    'minimal', 
-    'bold',
+    'classic', 
+    'minimalist',
+    'vintage',
     'playful',
     'elegant',
-    'vintage',
+    'bold',
+    'organic',
+    'geometric',
+    'hand-drawn',
     'tech',
-    'corporate'
+    'luxury'
   ])).min(1, "Please select at least one style"),
   colors: z.string().optional(),
   inspirations: z.array(z.string()).optional(),
