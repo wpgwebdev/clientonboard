@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight, Sparkles, CheckCircle, Download } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, ArrowRight, Sparkles, CheckCircle, Download, Upload, Palette, Check } from "lucide-react";
 import ProgressBar, { type Step } from "./ProgressBar";
 import SiteTypeSelector from "./SiteTypeSelector";
 import SitemapBuilder, { type Page } from "./SitemapBuilder";
 import DesignStyleSelector, { type DesignPreferences } from "./DesignStyleSelector";
 import CreativeBriefReview, { type CreativeBriefData } from "./CreativeBriefReview";
 import FileUpload from "./FileUpload";
+import { type LogoPreferences, type GeneratedLogo, type LogoSelection } from "@shared/schema";
 
 interface OnboardingWizardProps {
   className?: string;
@@ -53,6 +55,21 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const [generatedNames, setGeneratedNames] = useState<string[]>([]);
   const [isGeneratingNames, setIsGeneratingNames] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  
+  // Logo generation state
+  const [logoPath, setLogoPath] = useState<'upload' | 'generate' | null>(null);
+  const [logoPreferences, setLogoPreferences] = useState<LogoPreferences>({
+    types: [],
+    styles: [],
+    colors: "",
+    inspirations: [],
+    useReference: false
+  });
+  const [generatedLogos, setGeneratedLogos] = useState<GeneratedLogo[]>([]);
+  const [isGeneratingLogos, setIsGeneratingLogos] = useState(false);
+  const [selectedLogo, setSelectedLogo] = useState<GeneratedLogo | null>(null);
+  const [logoDecision, setLogoDecision] = useState<'final' | 'direction' | null>(null);
+  
   const [selectedSiteType, setSelectedSiteType] = useState<string>("");
   const [pages, setPages] = useState<Page[]>(initialPages);
   const [designPreferences, setDesignPreferences] = useState<DesignPreferences>({
@@ -72,7 +89,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       case 2: return businessDescription.trim() !== "" && 
                      businessName.trim() !== "" && 
                      hasBusinessName !== null;
-      case 3: return logoFile !== null;
+      case 3: return (logoPath === 'upload' && logoFile !== null) || 
+                     (logoPath === 'generate' && selectedLogo !== null && logoDecision !== null);
       case 4: return selectedSiteType !== "";
       case 5: return pages.length >= 2;
       case 6: return true; // Copy step - assume AI generated
@@ -381,19 +399,100 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                <FileUpload
-                  onFileSelect={setLogoFile}
-                  onFileRemove={() => setLogoFile(null)}
-                  currentFile={logoFile}
-                  acceptedTypes="image/*"
-                  maxSize={10}
-                  placeholder="Upload your logo or brand assets"
-                />
-                {logoFile && (
-                  <div className="p-4 bg-primary/10 rounded-lg">
-                    <p className="text-sm">
-                      <strong>AI Analysis:</strong> We'll analyze your logo to suggest complementary colors and design elements for your website.
-                    </p>
+                {/* Choice Cards - Upload vs Generate */}
+                {!logoPath && (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Card 
+                      className="p-4 cursor-pointer border-2 hover-elevate transition-all"
+                      onClick={() => setLogoPath('upload')}
+                      data-testid="button-logo-path-upload"
+                    >
+                      <div className="flex flex-col items-center text-center space-y-3">
+                        <Upload className="w-8 h-8 text-primary" />
+                        <div>
+                          <h3 className="font-medium">I have a logo</h3>
+                          <p className="text-sm text-muted-foreground">Upload your existing logo file</p>
+                        </div>
+                      </div>
+                    </Card>
+                    <Card 
+                      className="p-4 cursor-pointer border-2 hover-elevate transition-all"
+                      onClick={() => setLogoPath('generate')}
+                      data-testid="button-logo-path-generate"
+                    >
+                      <div className="flex flex-col items-center text-center space-y-3">
+                        <Palette className="w-8 h-8 text-primary" />
+                        <div>
+                          <h3 className="font-medium">I need a logo</h3>
+                          <p className="text-sm text-muted-foreground">Generate logo ideas with AI</p>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Upload Path */}
+                {logoPath === 'upload' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium">Upload Your Logo</h3>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setLogoPath(null)}
+                        data-testid="button-change-logo-path"
+                      >
+                        Change Option
+                      </Button>
+                    </div>
+                    <FileUpload
+                      onFileSelect={(file) => {
+                        setLogoFile(file);
+                      }}
+                      onFileRemove={() => setLogoFile(null)}
+                      currentFile={logoFile}
+                      acceptedTypes="image/*"
+                      maxSize={10}
+                      placeholder="Upload your logo or brand assets"
+                    />
+                    {logoFile && (
+                      <div className="p-4 bg-primary/10 rounded-lg">
+                        <p className="text-sm">
+                          <strong>AI Analysis:</strong> We'll analyze your logo to suggest complementary colors and design elements for your website.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Generate Path - Placeholder for now */}
+                {logoPath === 'generate' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium">Generate Logo Ideas</h3>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setLogoPath(null)}
+                        data-testid="button-change-logo-path"
+                      >
+                        Change Option
+                      </Button>
+                    </div>
+                    <div className="p-8 border-2 border-dashed rounded-lg text-center">
+                      <Sparkles className="w-12 h-12 mx-auto mb-4 text-primary/60" />
+                      <h3 className="text-lg font-medium mb-2">Logo Generation Coming Soon</h3>
+                      <p className="text-muted-foreground mb-4">
+                        AI-powered logo generation based on your business description and preferences.
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setLogoPath('upload')}
+                        data-testid="button-use-upload-instead"
+                      >
+                        Upload Logo Instead
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>

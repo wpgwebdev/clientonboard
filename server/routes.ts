@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
+import { logoGenerationRequestSchema, type GeneratedLogo } from "../shared/schema";
 
 // OpenAI integration - the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -115,6 +116,92 @@ Respond with JSON in this format:
       res.json({ 
         names: fallbackNames,
         fallback: true
+      });
+    }
+  });
+
+  // Logo generation endpoint
+  app.post("/api/logo/generate", async (req, res) => {
+    try {
+      // Validate request body using Zod schema
+      const validationResult = logoGenerationRequestSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid request data", 
+          details: validationResult.error.errors 
+        });
+      }
+      
+      const { businessName, description, preferences, referenceImageBase64 } = validationResult.data;
+      
+      // Build the logo description prompt
+      const logoTypes = preferences.types.join(", ");
+      const logoStyles = preferences.styles.join(", ");
+      const colorInfo = preferences.colors ? ` with ${preferences.colors} colors` : "";
+      
+      const businessInfo = businessName ? `"${businessName}" ` : "";
+      const basePrompt = `Professional logo design for ${businessInfo}business: "${description}"`;
+      
+      const stylePrompt = `Design style: ${logoStyles}. Logo type: ${logoTypes}${colorInfo}.`;
+      
+      const qualityPrompt = "High-quality, clean, scalable vector-style design. Professional appearance suitable for business branding.";
+      
+      const fullPrompt = `${basePrompt}. ${stylePrompt}. ${qualityPrompt}`;
+      
+      console.log("Generating logo with prompt:", fullPrompt);
+      
+      // Generate multiple logo variations (6 logos as recommended by architect)
+      const logoPromises = [];
+      for (let i = 0; i < 6; i++) {
+        logoPromises.push(
+          openai.images.generate({
+            model: "dall-e-3",
+            prompt: fullPrompt,
+            n: 1,
+            size: "1024x1024",
+            quality: "standard",
+            response_format: "b64_json"
+          })
+        );
+      }
+      
+      const responses = await Promise.all(logoPromises);
+      
+      const generatedLogos: GeneratedLogo[] = responses.map((response, index) => {
+        const imageData = response.data?.[0];
+        if (!imageData?.b64_json) {
+          throw new Error(`Failed to generate logo ${index + 1}`);
+        }
+        return {
+          id: `logo-${Date.now()}-${index}`,
+          dataUrl: `data:image/png;base64,${imageData.b64_json}`,
+          prompt: fullPrompt
+        };
+      });
+      
+      console.log(`Generated ${generatedLogos.length} logos successfully`);
+      
+      res.json({ logos: generatedLogos });
+      
+    } catch (error: any) {
+      console.error("Error generating logos:", error);
+      
+      // Provide helpful error message
+      if (error.code === 'insufficient_quota') {
+        return res.status(503).json({ 
+          error: "Logo generation service temporarily unavailable. Please try again later."
+        });
+      }
+      
+      if (error.code === 'content_policy_violation') {
+        return res.status(400).json({ 
+          error: "Unable to generate logo with the provided description. Please try different preferences or description."
+        });
+      }
+      
+      res.status(500).json({ 
+        error: "Failed to generate logos. Please try again."
       });
     }
   });
