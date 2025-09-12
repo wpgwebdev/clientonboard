@@ -93,13 +93,15 @@ export default function LandingPage({ onGetStarted, onLogin, className = "" }: L
           </Badge>
           
           <h1 className="text-5xl font-bold mb-6 leading-tight">
-            Start Your Website Project
-            <span className="text-primary block mt-2">The Right Way</span>
+            ✨ Welcome to Your Website Blueprint ✨
           </h1>
           
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            Our comprehensive onboarding portal guides you through creating a complete creative brief, 
-            ensuring your web design project starts with clear direction and professional results.
+          <p className="text-xl text-muted-foreground mb-6 max-w-3xl mx-auto leading-relaxed">
+            In just 15–20 minutes, we'll walk you through a fun, interactive experience to map out your entire website — from brand style and colors to site structure, copy, and images.
+          </p>
+          
+          <p className="text-lg text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+            By the end, you'll walk away with a professional wireframe and launch-ready roadmap that gives our team everything we need to design and build your dream site.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -109,8 +111,7 @@ export default function LandingPage({ onGetStarted, onLogin, className = "" }: L
               className="gap-2"
               data-testid="button-get-started"
             >
-              <Zap className="w-5 h-5" />
-              Start Your Project
+              🚀 Start Building My Website Blueprint
             </Button>
             <Button 
               variant="outline" 
@@ -203,8 +204,7 @@ export default function LandingPage({ onGetStarted, onLogin, className = "" }: L
             className="gap-2"
             data-testid="button-cta-start"
           >
-            <Sparkles className="w-5 h-5" />
-            Start Your Creative Brief
+            🚀 Start Building My Website Blueprint
           </Button>
         </div>
       </section>
