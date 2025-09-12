@@ -16,3 +16,53 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// Logo Generation Schemas
+export const logoPreferencesSchema = z.object({
+  types: z.array(z.enum([
+    'wordmark', 
+    'lettermark', 
+    'logomark', 
+    'combination', 
+    'emblem', 
+    'abstract', 
+    'mascot'
+  ])).min(1, "Please select at least one logo type"),
+  styles: z.array(z.enum([
+    'modern',
+    'minimal', 
+    'bold',
+    'playful',
+    'elegant',
+    'vintage',
+    'tech',
+    'corporate'
+  ])).min(1, "Please select at least one style"),
+  colors: z.string().optional(),
+  inspirations: z.array(z.string()).optional(),
+  useReference: z.boolean().optional()
+});
+
+export const logoGenerationRequestSchema = z.object({
+  businessName: z.string().optional(),
+  description: z.string().min(1, "Business description is required"),
+  preferences: logoPreferencesSchema,
+  referenceImageBase64: z.string().optional()
+});
+
+export const generatedLogoSchema = z.object({
+  id: z.string(),
+  dataUrl: z.string(),
+  prompt: z.string()
+});
+
+export const logoSelectionSchema = z.object({
+  selectedId: z.string(),
+  decision: z.enum(['final', 'direction']),
+  selectedLogo: generatedLogoSchema
+});
+
+export type LogoPreferences = z.infer<typeof logoPreferencesSchema>;
+export type LogoGenerationRequest = z.infer<typeof logoGenerationRequestSchema>;
+export type GeneratedLogo = z.infer<typeof generatedLogoSchema>;
+export type LogoSelection = z.infer<typeof logoSelectionSchema>;
