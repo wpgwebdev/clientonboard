@@ -151,34 +151,66 @@ Respond with JSON in this format:
       
       console.log("Generating logo with prompt:", fullPrompt);
       
-      // Generate multiple logo variations (6 logos as recommended by architect)
-      const logoPromises = [];
-      for (let i = 0; i < 6; i++) {
-        logoPromises.push(
-          openai.images.generate({
-            model: "dall-e-3",
-            prompt: fullPrompt,
-            n: 1,
-            size: "1024x1024",
-            quality: "standard",
-            response_format: "b64_json"
-          })
-        );
+      // Generate multiple logo variations (3 logos for better reliability)
+      const responses = [];
+      const maxRetries = 2;
+      
+      for (let i = 0; i < 3; i++) {
+        let retries = 0;
+        let success = false;
+        
+        while (retries <= maxRetries && !success) {
+          try {
+            console.log(`Generating logo ${i + 1}/3 (attempt ${retries + 1})`);
+            
+            const response = await openai.images.generate({
+              model: "dall-e-3", 
+              prompt: fullPrompt,
+              n: 1,
+              size: "1024x1024",
+              quality: "standard",
+              response_format: "b64_json"
+            });
+            
+            responses.push(response);
+            success = true;
+            console.log(`Logo ${i + 1} generated successfully`);
+            
+          } catch (error: any) {
+            retries++;
+            console.error(`Error generating logo ${i + 1}, attempt ${retries}:`, error.message);
+            
+            if (retries > maxRetries) {
+              console.error(`Failed to generate logo ${i + 1} after ${maxRetries + 1} attempts`);
+              // Continue with fewer logos rather than failing completely
+              break;
+            }
+            
+            // Wait a bit before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
       }
       
-      const responses = await Promise.all(logoPromises);
+      // Filter out failed responses and map to GeneratedLogo format
+      const generatedLogos: GeneratedLogo[] = [];
       
-      const generatedLogos: GeneratedLogo[] = responses.map((response, index) => {
+      responses.forEach((response, index) => {
         const imageData = response.data?.[0];
-        if (!imageData?.b64_json) {
-          throw new Error(`Failed to generate logo ${index + 1}`);
+        if (imageData?.b64_json) {
+          generatedLogos.push({
+            id: `logo-${Date.now()}-${index}`,
+            dataUrl: `data:image/png;base64,${imageData.b64_json}`,
+            prompt: fullPrompt
+          });
         }
-        return {
-          id: `logo-${Date.now()}-${index}`,
-          dataUrl: `data:image/png;base64,${imageData.b64_json}`,
-          prompt: fullPrompt
-        };
       });
+      
+      if (generatedLogos.length === 0) {
+        return res.status(500).json({ 
+          error: "Unable to generate any logos at this time. Please try again with different preferences or check your internet connection."
+        });
+      }
       
       console.log(`Generated ${generatedLogos.length} logos successfully`);
       
