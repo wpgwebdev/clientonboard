@@ -17,6 +17,12 @@ export interface CreativeBriefData {
   businessName: string;
   businessDescription: string;
   logoFile?: File;
+  logoDecision?: 'final' | 'direction';
+  selectedLogo?: {
+    id: string;
+    dataUrl: string;
+    prompt: string;
+  };
   colors: string[];
   fonts: string[];
   siteType: string;
@@ -110,12 +116,40 @@ export default function CreativeBriefReview({
                   {briefData.businessDescription}
                 </p>
               </div>
-              {briefData.logoFile && (
+              {(briefData.logoFile || briefData.selectedLogo) && (
                 <div>
                   <p className="text-sm font-medium mb-2">Logo:</p>
-                  <p className="text-sm text-muted-foreground">
-                    {briefData.logoFile.name}
-                  </p>
+                  {briefData.logoFile && (
+                    <p className="text-sm text-muted-foreground">
+                      Uploaded: {briefData.logoFile.name}
+                    </p>
+                  )}
+                  {briefData.selectedLogo && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={briefData.selectedLogo.dataUrl} 
+                          alt="Selected Logo" 
+                          className="w-16 h-16 object-contain border rounded"
+                        />
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            AI Generated Logo
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant={briefData.logoDecision === 'final' ? 'default' : 'secondary'}>
+                              {briefData.logoDecision === 'final' ? 'Final Selection' : 'Creative Direction'}
+                            </Badge>
+                          </div>
+                          {briefData.logoDecision === 'direction' && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Client wants similar style - requires refinement
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

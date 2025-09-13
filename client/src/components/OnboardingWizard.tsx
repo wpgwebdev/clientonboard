@@ -910,6 +910,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           businessName,
           businessDescription,
           logoFile: logoFile || undefined,
+          logoDecision: logoDecision || undefined,
+          selectedLogo: selectedLogo || undefined,
           colors: ['#3B82F6', '#10B981'], // Mock colors
           fonts: ['Inter', 'Open Sans'], // Mock fonts
           siteType: selectedSiteType,
