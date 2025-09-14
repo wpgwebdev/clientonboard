@@ -70,3 +70,33 @@ export type LogoPreferences = z.infer<typeof logoPreferencesSchema>;
 export type LogoGenerationRequest = z.infer<typeof logoGenerationRequestSchema>;
 export type GeneratedLogo = z.infer<typeof generatedLogoSchema>;
 export type LogoSelection = z.infer<typeof logoSelectionSchema>;
+
+// Content Generation Schemas
+export const contentPreferencesSchema = z.object({
+  style: z.enum(['text-heavy', 'visual-focused', 'balanced']),
+  useVideo: z.boolean(),
+  tone: z.enum(['professional', 'casual', 'friendly', 'authoritative'])
+});
+
+export const contentGenerationRequestSchema = z.object({
+  businessName: z.string(),
+  businessDescription: z.string(),
+  siteType: z.string(),
+  pages: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    path: z.string()
+  })),
+  preferences: contentPreferencesSchema
+});
+
+export const generatedContentSchema = z.object({
+  pageId: z.string(),
+  pageName: z.string(),
+  content: z.string(),
+  suggestions: z.array(z.string()).optional()
+});
+
+export type ContentPreferences = z.infer<typeof contentPreferencesSchema>;
+export type ContentGenerationRequest = z.infer<typeof contentGenerationRequestSchema>;
+export type GeneratedContent = z.infer<typeof generatedContentSchema>;

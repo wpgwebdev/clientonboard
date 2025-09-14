@@ -9,15 +9,23 @@ import SitemapBuilder, { type Page } from "./SitemapBuilder";
 import DesignStyleSelector, { type DesignPreferences } from "./DesignStyleSelector";
 import CreativeBriefReview, { type CreativeBriefData } from "./CreativeBriefReview";
 import FileUpload from "./FileUpload";
-import { type LogoPreferences, type GeneratedLogo, type LogoSelection, logoPreferencesSchema } from "@shared/schema";
+import { 
+  type LogoPreferences, 
+  type GeneratedLogo, 
+  type LogoSelection, 
+  logoPreferencesSchema,
+  type ContentPreferences,
+  contentPreferencesSchema,
+  type GeneratedContent
+} from "@shared/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -364,6 +372,7 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
 }
 
 export default function OnboardingWizard({ className = "" }: OnboardingWizardProps) {
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   
@@ -389,6 +398,15 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const [isGeneratingLogos, setIsGeneratingLogos] = useState(false);
   const [selectedLogo, setSelectedLogo] = useState<GeneratedLogo | null>(null);
   const [logoDecision, setLogoDecision] = useState<'final' | 'direction' | null>(null);
+  
+  // Content generation state
+  const [contentPreferences, setContentPreferences] = useState<ContentPreferences>({
+    style: 'balanced',
+    useVideo: false,
+    tone: 'professional'
+  });
+  const [generatedContent, setGeneratedContent] = useState<GeneratedContent[]>([]);
+  const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   
   const [selectedSiteType, setSelectedSiteType] = useState<string>("");
   const [pages, setPages] = useState<Page[]>(initialPages);
@@ -493,9 +511,43 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     }
   };
 
-  const generateContent = () => {
+  const generateContent = async () => {
+    if (isGeneratingContent) return;
+    
+    setIsGeneratingContent(true);
     console.log('Generating AI content for pages...');
-    // TODO: Implement AI content generation
+    
+    try {
+      const response = await apiRequest('POST', '/api/content/generate', {
+        businessName,
+        businessDescription,
+        siteType: selectedSiteType,
+        pages: pages.map(p => ({ id: p.id, name: p.name, path: p.path })),
+        preferences: contentPreferences
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to generate content');
+      }
+      
+      const data = await response.json() as { content: GeneratedContent[] };
+      setGeneratedContent(data.content);
+      
+      toast({
+        title: "Content Generated!",
+        description: `Created content for ${data.content.length} pages.`
+      });
+    } catch (error: any) {
+      console.error('Content generation error:', error);
+      toast({
+        title: "Generation Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingContent(false);
+    }
   };
 
   const exportPDF = () => {
@@ -849,21 +901,132 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                 <p className="text-muted-foreground mb-6">
                   Our AI will generate draft copy for each of your pages based on your business information and selected website type.
                 </p>
-                <Button onClick={generateContent} className="gap-2" data-testid="button-generate-content">
-                  <Sparkles className="w-4 h-4" />
-                  Generate Page Content
+              </div>
+
+              {/* Content Preferences */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Content Preferences</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Content Style */}
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Content Style</label>
+                      <Select 
+                        value={contentPreferences.style} 
+                        onValueChange={(value: 'text-heavy' | 'visual-focused' | 'balanced') => 
+                          setContentPreferences(prev => ({ ...prev, style: value }))
+                        }
+                      >
+                        <SelectTrigger data-testid="select-content-style">
+                          <SelectValue placeholder="Select style" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text-heavy">Text Heavy</SelectItem>
+                          <SelectItem value="visual-focused">Visual Focused</SelectItem>
+                          <SelectItem value="balanced">Balanced</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Tone */}
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Tone</label>
+                      <Select 
+                        value={contentPreferences.tone} 
+                        onValueChange={(value: 'professional' | 'casual' | 'friendly' | 'authoritative') => 
+                          setContentPreferences(prev => ({ ...prev, tone: value }))
+                        }
+                      >
+                        <SelectTrigger data-testid="select-content-tone">
+                          <SelectValue placeholder="Select tone" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="professional">Professional</SelectItem>
+                          <SelectItem value="casual">Casual</SelectItem>
+                          <SelectItem value="friendly">Friendly</SelectItem>
+                          <SelectItem value="authoritative">Authoritative</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Video Usage */}
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="use-video"
+                        checked={contentPreferences.useVideo}
+                        onCheckedChange={(checked) => 
+                          setContentPreferences(prev => ({ ...prev, useVideo: !!checked }))
+                        }
+                        data-testid="checkbox-use-video"
+                      />
+                      <div>
+                        <label htmlFor="use-video" className="text-sm font-medium">
+                          Video Content
+                        </label>
+                        <p className="text-xs text-muted-foreground">
+                          Interested in using video content (you'll create videos yourself)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Generate Button */}
+              <div className="text-center">
+                <Button 
+                  onClick={generateContent} 
+                  disabled={isGeneratingContent}
+                  className="gap-2" 
+                  data-testid="button-generate-content"
+                >
+                  {isGeneratingContent ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                      Generating Content...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      Generate Page Content
+                    </>
+                  )}
                 </Button>
               </div>
               
+              {/* Generated Content Display */}
               <div className="grid gap-4">
-                {pages.map((page) => (
-                  <div key={page.id} className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-2">{page.name} Page</h4>
-                    <p className="text-sm text-muted-foreground">
-                      AI-generated content will appear here for the {page.name.toLowerCase()} page...
-                    </p>
-                  </div>
-                ))}
+                {pages.map((page) => {
+                  const pageContent = generatedContent.find(content => content.pageId === page.id);
+                  return (
+                    <div key={page.id} className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">{page.name} Page</h4>
+                      {pageContent ? (
+                        <div className="space-y-3">
+                          <div className="bg-muted p-3 rounded text-sm">
+                            {pageContent.content}
+                          </div>
+                          {pageContent.suggestions && pageContent.suggestions.length > 0 && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground mb-1">Suggestions:</p>
+                              <ul className="text-xs text-muted-foreground space-y-1">
+                                {pageContent.suggestions.map((suggestion, index) => (
+                                  <li key={index}>• {suggestion}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          AI-generated content will appear here for the {page.name.toLowerCase()} page...
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

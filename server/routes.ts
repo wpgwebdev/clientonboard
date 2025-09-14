@@ -240,6 +240,133 @@ Respond with JSON in this format:
     }
   });
 
+  // Content generation endpoint
+  app.post("/api/content/generate", async (req, res) => {
+    try {
+      const { contentGenerationRequestSchema } = await import("@shared/schema");
+      
+      // Validate request body
+      const validationResult = contentGenerationRequestSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid request data", 
+          details: validationResult.error.errors 
+        });
+      }
+      
+      const { businessName, businessDescription, siteType, pages, preferences } = validationResult.data;
+      
+      console.log("Generating content for pages:", pages.map(p => p.name));
+      
+      const generatedContent = [];
+      
+      for (const page of pages) {
+        try {
+          const contentPrompt = buildContentPrompt(
+            businessName, 
+            businessDescription, 
+            siteType, 
+            page, 
+            preferences
+          );
+          
+          console.log(`Generating content for ${page.name} page...`);
+          
+          // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+          const response = await openai.chat.completions.create({
+            model: "gpt-5",
+            messages: [
+              {
+                role: "system",
+                content: "You are a professional web copywriter. Generate engaging, conversion-focused content for website pages. Respond with JSON in this format: { \"content\": \"page content here\", \"suggestions\": [\"tip1\", \"tip2\"] }"
+              },
+              {
+                role: "user",
+                content: contentPrompt
+              }
+            ],
+            response_format: { type: "json_object" },
+            max_completion_tokens: 1000
+          });
+          
+          const result = JSON.parse(response.choices[0].message.content);
+          
+          generatedContent.push({
+            pageId: page.id,
+            pageName: page.name,
+            content: result.content,
+            suggestions: result.suggestions || []
+          });
+          
+          console.log(`Content generated for ${page.name} page`);
+          
+        } catch (error: any) {
+          console.error(`Error generating content for ${page.name}:`, error);
+          
+          // Add fallback content for this page
+          generatedContent.push({
+            pageId: page.id,
+            pageName: page.name,
+            content: `Welcome to our ${page.name.toLowerCase()} page. ${businessDescription} We're committed to providing excellent service and value to our customers.`,
+            suggestions: ["Add your unique value proposition", "Include customer testimonials", "Add clear call-to-action buttons"]
+          });
+        }
+      }
+      
+      console.log(`Generated content for ${generatedContent.length} pages`);
+      
+      res.json({ content: generatedContent });
+      
+    } catch (error) {
+      console.error("Content generation error:", error);
+      res.status(500).json({ 
+        error: "Failed to generate content", 
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  function buildContentPrompt(
+    businessName: string, 
+    businessDescription: string, 
+    siteType: string, 
+    page: { name: string; path: string }, 
+    preferences: { style: string; useVideo: boolean; tone: string }
+  ): string {
+    const businessInfo = `Business: "${businessName}" - ${businessDescription}`;
+    const siteInfo = `Website type: ${siteType}`;
+    const pageInfo = `Page: ${page.name}`;
+    
+    const styleGuidance = {
+      'text-heavy': 'Focus on detailed, informative content with comprehensive explanations and in-depth information.',
+      'visual-focused': 'Keep text concise and mention where images, graphics, or visual elements should be placed. Suggest specific visual elements.',
+      'balanced': 'Create a good balance of informative text with suggestions for supporting visuals.'
+    }[preferences.style];
+    
+    const toneGuidance = {
+      'professional': 'Use professional, authoritative language',
+      'casual': 'Use friendly, conversational language',
+      'friendly': 'Use warm, approachable language',
+      'authoritative': 'Use confident, expert language'
+    }[preferences.tone];
+    
+    const videoNote = preferences.useVideo ? 
+      ' NOTE: Client is interested in using video content - suggest where video content would be most effective.' : 
+      '';
+    
+    return `${businessInfo}. ${siteInfo}. ${pageInfo}.
+
+Content Guidelines:
+- ${styleGuidance}
+- ${toneGuidance}
+- Write content appropriate for a ${page.name.toLowerCase()} page
+- Include clear calls-to-action where appropriate
+- Make it engaging and conversion-focused${videoNote}
+
+Generate compelling, professional web copy for this page.`;
+  }
+
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 
