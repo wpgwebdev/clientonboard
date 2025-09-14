@@ -94,9 +94,26 @@ export const generatedContentSchema = z.object({
   pageId: z.string(),
   pageName: z.string(),
   content: z.string(),
-  suggestions: z.array(z.string()).optional()
+  editedContent: z.string().optional(), // User's edited version
+  pageDirection: z.string().optional(), // User's specific direction for this page
+  suggestions: z.array(z.string()).optional(),
+  hasEdits: z.boolean().optional() // Flag to track if content was edited
+});
+
+export const pageRegenerationRequestSchema = z.object({
+  businessName: z.string(),
+  businessDescription: z.string(),
+  siteType: z.string(),
+  page: z.object({
+    id: z.string(),
+    name: z.string(),
+    path: z.string()
+  }),
+  preferences: contentPreferencesSchema,
+  pageDirection: z.string().optional() // Custom direction for this specific page
 });
 
 export type ContentPreferences = z.infer<typeof contentPreferencesSchema>;
 export type ContentGenerationRequest = z.infer<typeof contentGenerationRequestSchema>;
 export type GeneratedContent = z.infer<typeof generatedContentSchema>;
+export type PageRegenerationRequest = z.infer<typeof pageRegenerationRequestSchema>;

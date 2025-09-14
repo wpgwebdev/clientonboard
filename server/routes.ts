@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
-import { logoGenerationRequestSchema, type GeneratedLogo } from "../shared/schema";
+import { logoGenerationRequestSchema, type GeneratedLogo, contentGenerationRequestSchema, pageRegenerationRequestSchema } from "../shared/schema";
 
 // OpenAI integration - the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -273,24 +273,96 @@ Respond with JSON in this format:
           
           console.log(`Generating content for ${page.name} page...`);
           
-          // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-          const response = await openai.chat.completions.create({
-            model: "gpt-5",
-            messages: [
-              {
-                role: "system",
-                content: "You are a professional web copywriter. Generate engaging, conversion-focused content for website pages. Respond with JSON in this format: { \"content\": \"page content here\", \"suggestions\": [\"tip1\", \"tip2\"] }"
-              },
-              {
-                role: "user",
-                content: contentPrompt
-              }
-            ],
-            response_format: { type: "json_object" },
-            max_completion_tokens: 1000
-          });
+          // Generate content with retry logic
+          let response: any = null;
+          let currentPrompt = contentPrompt;
           
-          const result = JSON.parse(response.choices[0].message.content);
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              console.log(`Attempt ${attempt} for ${page.name} page content generation`);
+              
+              response = await openai.chat.completions.create({
+                model: "gpt-5",
+                messages: [
+                  {
+                    role: "system",
+                    content: "You are a professional web copywriter. Generate detailed website copy. Return ONLY valid JSON: { \"content\": \"full detailed page content with multiple paragraphs\", \"suggestions\": [\"tip1\", \"tip2\", \"tip3\"] }"
+                  },
+                  {
+                    role: "user",
+                    content: currentPrompt
+                  }
+                ],
+                max_tokens: 1400,
+                temperature: attempt > 1 ? 0.2 : 0.7
+              });
+              
+              console.log(`OpenAI usage for ${page.name}:`, response.usage);
+              console.log(`Finish reason for ${page.name}:`, response.choices[0].finish_reason);
+              break; // Success, exit retry loop
+              
+            } catch (error: any) {
+              console.error(`Attempt ${attempt} failed for ${page.name}:`, error.message);
+              if (attempt === 3) throw error; // Final attempt failed
+              
+              // Shorten prompt for retry
+              currentPrompt = `Create website copy for ${page.name} page. Business: ${businessName} - ${businessDescription}. Make it ${preferences.tone} and ${preferences.style === 'text-heavy' ? 'detailed' : 'concise'}.`;
+              await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
+            }
+          }
+          
+          const responseContent = response.choices[0].message.content;
+          console.log(`Raw OpenAI response for ${page.name} (first 300 chars):`, responseContent?.substring(0, 300));
+          
+          if (!responseContent || responseContent.trim() === '') {
+            throw new Error('OpenAI returned empty response');
+          }
+          
+          // Tolerant JSON parsing
+          let result;
+          try {
+            // Try direct JSON parse first
+            result = JSON.parse(responseContent);
+          } catch (parseError: any) {
+            console.log(`Direct JSON parse failed for ${page.name}, trying tolerant parsing...`);
+            
+            // Try to extract JSON from ```json fences or find JSON object
+            let cleanContent = responseContent.trim();
+            
+            // Remove markdown fences if present
+            cleanContent = cleanContent.replace(/^```json\n?/gi, '').replace(/\n?```$/g, '');
+            
+            // Try to find the first complete JSON object
+            const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              try {
+                result = JSON.parse(jsonMatch[0]);
+                console.log(`Tolerant JSON parsing succeeded for ${page.name}`);
+              } catch (secondParseError) {
+                console.log(`Tolerant parsing also failed for ${page.name}, using fallback`);
+                // Fallback: wrap the whole content
+                result = {
+                  content: cleanContent,
+                  suggestions: ["Edit and enhance this content", "Add more specific details", "Include calls-to-action"]
+                };
+              }
+            } else {
+              console.log(`No JSON structure found for ${page.name}, using fallback`);
+              // Fallback: wrap the whole content
+              result = {
+                content: cleanContent,
+                suggestions: ["Edit and enhance this content", "Add more specific details", "Include calls-to-action"]
+              };
+            }
+          }
+          
+          // Ensure result has required structure
+          if (!result.content) {
+            result.content = `Welcome to our ${page.name.toLowerCase()} page. ${businessDescription} We're committed to providing excellent service and value to our customers.`;
+          }
+          if (!result.suggestions || !Array.isArray(result.suggestions)) {
+            result.suggestions = ["Add your unique value proposition", "Include customer testimonials", "Add clear call-to-action buttons"];
+          }
           
           generatedContent.push({
             pageId: page.id,
@@ -327,6 +399,137 @@ Respond with JSON in this format:
     }
   });
 
+  // Individual page regeneration route
+  app.post('/api/content/regenerate', async (req, res) => {
+    try {
+      const validatedData = pageRegenerationRequestSchema.parse(req.body);
+      const { businessName, businessDescription, siteType, page, preferences, pageDirection } = validatedData;
+      
+      console.log(`Regenerating content for ${page.name} page...`);
+      
+      // Build enhanced prompt with custom direction
+      let contentPrompt = buildContentPrompt(businessName, businessDescription, siteType, page, preferences);
+      
+      if (pageDirection) {
+        contentPrompt += `\n\nSPECIAL INSTRUCTIONS: ${pageDirection}`;
+      }
+      
+      console.log(`Regenerating content for ${page.name} page...`);
+      
+      // Generate content for the specific page with retry logic
+      let response: any = null;
+      let currentPrompt = contentPrompt;
+      let result;
+      
+      try {
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            console.log(`Regeneration attempt ${attempt} for ${page.name} page`);
+            
+            response = await openai.chat.completions.create({
+              model: "gpt-5",
+              messages: [
+                {
+                  role: "system",
+                  content: "You are a professional web copywriter. Generate detailed website copy. Return ONLY valid JSON: { \"content\": \"full detailed page content with multiple paragraphs\", \"suggestions\": [\"tip1\", \"tip2\", \"tip3\"] }"
+                },
+                {
+                  role: "user",
+                  content: currentPrompt
+                }
+              ],
+              max_tokens: 1400,
+              temperature: attempt > 1 ? 0.2 : 0.7
+            });
+            
+            console.log(`OpenAI usage for ${page.name} regeneration:`, response.usage);
+            console.log(`Finish reason for ${page.name} regeneration:`, response.choices[0].finish_reason);
+            break; // Success, exit retry loop
+            
+          } catch (error: any) {
+            console.error(`Regeneration attempt ${attempt} failed for ${page.name}:`, error.message);
+            if (attempt === 3) throw error; // Final attempt failed
+            
+            // Shorten prompt for retry
+            currentPrompt = `Create website copy for ${page.name} page. Business: ${businessName} - ${businessDescription}. Make it ${preferences.tone} and ${preferences.style === 'text-heavy' ? 'detailed' : 'concise'}.`;
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
+          }
+        }
+        
+        const responseContent = response.choices[0].message.content;
+        console.log(`Raw OpenAI regeneration response for ${page.name} (first 300 chars):`, responseContent?.substring(0, 300));
+        
+        if (!responseContent || responseContent.trim() === '') {
+          throw new Error('OpenAI returned empty response during regeneration');
+        }
+        
+        // Tolerant JSON parsing (same as main route)
+        try {
+          result = JSON.parse(responseContent);
+        } catch (parseError: any) {
+          console.log(`Direct JSON parse failed for ${page.name} regeneration, trying tolerant parsing...`);
+          
+          let cleanContent = responseContent.trim();
+          cleanContent = cleanContent.replace(/^```json\n?/gi, '').replace(/\n?```$/g, '');
+          
+          const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            try {
+              result = JSON.parse(jsonMatch[0]);
+              console.log(`Tolerant JSON parsing succeeded for ${page.name} regeneration`);
+            } catch (secondParseError) {
+              console.log(`Tolerant parsing also failed for ${page.name} regeneration, using fallback`);
+              result = {
+                content: cleanContent,
+                suggestions: ["Edit and enhance this content", "Add more specific details", "Include calls-to-action"]
+              };
+            }
+          } else {
+            console.log(`No JSON structure found for ${page.name} regeneration, using fallback`);
+            result = {
+              content: cleanContent,
+              suggestions: ["Edit and enhance this content", "Add more specific details", "Include calls-to-action"]
+            };
+          }
+        }
+        
+      } catch (error: any) {
+        console.error(`All regeneration attempts failed for ${page.name}:`, error.message);
+        // Instead of throwing, use fallback content (graceful degradation)
+        result = {
+          content: `Welcome to our ${page.name.toLowerCase()} page. ${businessDescription} We're committed to providing excellent service and value to our customers.`,
+          suggestions: ["Add your unique value proposition", "Include customer testimonials", "Add clear call-to-action buttons"]
+        };
+      }
+      
+      // Ensure result has required structure
+      if (!result.content) {
+        result.content = `Welcome to our ${page.name.toLowerCase()} page. ${businessDescription} We're committed to providing excellent service and value to our customers.`;
+      }
+      if (!result.suggestions || !Array.isArray(result.suggestions)) {
+        result.suggestions = ["Add your unique value proposition", "Include customer testimonials", "Add clear call-to-action buttons"];
+      }
+      
+      const generatedContent = {
+        pageId: page.id,
+        pageName: page.name,
+        content: result.content,
+        suggestions: result.suggestions
+      };
+      
+      console.log(`Content regenerated for ${page.name} page`);
+      
+      res.json({ content: generatedContent });
+      
+    } catch (error: any) {
+      console.error("Page regeneration error:", error);
+      res.status(500).json({ 
+        error: "Failed to regenerate content", 
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   function buildContentPrompt(
     businessName: string, 
     businessDescription: string, 
@@ -336,35 +539,60 @@ Respond with JSON in this format:
   ): string {
     const businessInfo = `Business: "${businessName}" - ${businessDescription}`;
     const siteInfo = `Website type: ${siteType}`;
-    const pageInfo = `Page: ${page.name}`;
+    const pageInfo = `Page: ${page.name} (${page.path})`;
     
     const styleGuidance = {
-      'text-heavy': 'Focus on detailed, informative content with comprehensive explanations and in-depth information.',
-      'visual-focused': 'Keep text concise and mention where images, graphics, or visual elements should be placed. Suggest specific visual elements.',
-      'balanced': 'Create a good balance of informative text with suggestions for supporting visuals.'
+      'text-heavy': 'Generate 4-6 substantial paragraphs with detailed explanations, comprehensive information, and thorough coverage of the topic. Include multiple sections with descriptive subheadings.',
+      'visual-focused': 'Generate 2-3 concise but compelling paragraphs. Include specific suggestions for images, graphics, charts, or visual elements with detailed descriptions of what should be shown.',
+      'balanced': 'Generate 3-4 well-developed paragraphs that balance informative text with clear suggestions for supporting visuals and multimedia elements.'
     }[preferences.style];
     
     const toneGuidance = {
-      'professional': 'Use professional, authoritative language',
-      'casual': 'Use friendly, conversational language',
-      'friendly': 'Use warm, approachable language',
-      'authoritative': 'Use confident, expert language'
+      'professional': 'Use professional, authoritative language with industry expertise and credibility',
+      'casual': 'Use friendly, conversational language that feels like talking to a trusted friend',
+      'friendly': 'Use warm, approachable language that makes visitors feel welcome and valued',
+      'authoritative': 'Use confident, expert language that establishes leadership and trustworthiness'
     }[preferences.tone];
     
     const videoNote = preferences.useVideo ? 
-      ' NOTE: Client is interested in using video content - suggest where video content would be most effective.' : 
+      '\n\nVIDEO INTEGRATION: The client wants to create their own video content. Suggest 2-3 specific places where video would be most effective and describe what type of video content would work best (testimonials, product demos, behind-the-scenes, etc.).' : 
       '';
     
-    return `${businessInfo}. ${siteInfo}. ${pageInfo}.
+    const pageSpecificGuidance = getPageSpecificGuidance(page.name, siteType);
+    
+    return `Create comprehensive website copy for a ${page.name} page.
 
-Content Guidelines:
+BUSINESS CONTEXT:
+${businessInfo}
+Website Type: ${siteType}
+
+CONTENT REQUIREMENTS:
+${pageSpecificGuidance}
+
+STYLE & TONE:
 - ${styleGuidance}
 - ${toneGuidance}
-- Write content appropriate for a ${page.name.toLowerCase()} page
-- Include clear calls-to-action where appropriate
-- Make it engaging and conversion-focused${videoNote}
+- Make it engaging, conversion-focused, and appropriate for the target audience
+- Include compelling headlines and clear calls-to-action${videoNote}
 
-Generate compelling, professional web copy for this page.`;
+Generate complete, ready-to-use web copy with proper structure, headings, and full paragraphs.`;
+  }
+
+  function getPageSpecificGuidance(pageName: string, siteType: string): string {
+    const guidance: { [key: string]: string } = {
+      'Home': `Create a compelling homepage that includes: a powerful headline, value proposition, key benefits/services, social proof elements, and strong call-to-action. This should immediately communicate what the business does and why visitors should care.`,
+      'About': `Write an engaging about page that tells the company story, highlights expertise and experience, introduces team members or founder, explains the company mission/values, and builds trust and credibility.`,
+      'Services': `Detail the main services offered, explain the benefits of each service, include pricing information if appropriate, address common customer pain points, and provide clear next steps for getting started.`,
+      'Products': `Showcase key products with detailed descriptions, highlight unique features and benefits, include technical specifications if relevant, mention pricing and availability, and provide easy purchasing options.`,
+      'Contact': `Provide multiple ways to get in touch, include business hours and location details, set expectations for response times, add a compelling reason to contact the business, and make the process as easy as possible.`,
+      'Blog': `Create an introduction to the blog section, explain what type of content visitors can expect, highlight recent or popular posts, and encourage subscription or regular visits.`,
+      'Portfolio': `Showcase the best work examples, explain the process and approach, highlight results and client satisfaction, demonstrate expertise across different projects, and encourage potential clients to start a conversation.`,
+      'FAQ': `Address the most common customer questions, provide detailed helpful answers, anticipate concerns or objections, organize information logically, and guide visitors toward taking action.`,
+      'Testimonials': `Present customer success stories and reviews, highlight specific results and benefits, build credibility and trust, show diverse client experiences, and encourage new customers to get started.`,
+      'Pricing': `Clearly explain pricing options and packages, highlight value and benefits for each tier, address common concerns about cost, provide easy ways to get started, and include testimonials or guarantees if applicable.`
+    };
+    
+    return guidance[pageName] || `Create compelling content for the ${pageName} page that aligns with the overall ${siteType} website goals and helps convert visitors into customers.`;
   }
 
   // use storage to perform CRUD operations on the storage interface

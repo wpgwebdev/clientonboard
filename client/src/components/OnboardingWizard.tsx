@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Sparkles, CheckCircle, Download, Upload, Palette, Check, Wand2, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, CheckCircle, Download, Upload, Palette, Check, Wand2, Loader2, RefreshCw } from "lucide-react";
 import ProgressBar, { type Step } from "./ProgressBar";
 import SiteTypeSelector from "./SiteTypeSelector";
 import SitemapBuilder, { type Page } from "./SitemapBuilder";
@@ -550,6 +550,88 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     }
   };
 
+  // Function to update page direction
+  const updatePageDirection = (pageId: string, direction: string) => {
+    setGeneratedContent(prevContent => 
+      prevContent.map(content => 
+        content.pageId === pageId 
+          ? { ...content, pageDirection: direction }
+          : content
+      )
+    );
+  };
+
+  // Function to update page content (editing)
+  const updatePageContent = (pageId: string, newContent: string) => {
+    setGeneratedContent(prevContent => 
+      prevContent.map(content => 
+        content.pageId === pageId 
+          ? { 
+              ...content, 
+              editedContent: newContent,
+              hasEdits: newContent !== content.content
+            }
+          : content
+      )
+    );
+  };
+
+  // Function to regenerate content for a specific page
+  const regeneratePageContent = async (page: Page) => {
+    if (isGeneratingContent) return;
+    
+    setIsGeneratingContent(true);
+    console.log(`Regenerating content for ${page.name} page...`);
+    
+    try {
+      const pageContent = generatedContent.find(content => content.pageId === page.id);
+      const customDirection = pageContent?.pageDirection || '';
+      
+      const response = await apiRequest('POST', '/api/content/regenerate', {
+        businessName,
+        businessDescription,
+        siteType: selectedSiteType,
+        page: { id: page.id, name: page.name, path: page.path },
+        preferences: contentPreferences,
+        pageDirection: customDirection
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to regenerate content');
+      }
+      
+      const data = await response.json() as { content: GeneratedContent };
+      
+      // Update the specific page content
+      setGeneratedContent(prevContent => 
+        prevContent.map(content => 
+          content.pageId === page.id 
+            ? { 
+                ...data.content, 
+                pageDirection: customDirection,
+                hasEdits: false // Reset edit flag for regenerated content
+              }
+            : content
+        )
+      );
+      
+      toast({
+        title: "Content Regenerated!",
+        description: `Updated content for ${page.name} page.`
+      });
+    } catch (error: any) {
+      console.error('Content regeneration error:', error);
+      toast({
+        title: "Regeneration Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingContent(false);
+    }
+  };
+
   const exportPDF = () => {
     console.log('Exporting creative brief as PDF...');
     // TODO: Implement PDF export
@@ -996,35 +1078,90 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                 </Button>
               </div>
               
-              {/* Generated Content Display */}
-              <div className="grid gap-4">
+              {/* Enhanced Content Editor Display */}
+              <div className="grid gap-6">
                 {pages.map((page) => {
                   const pageContent = generatedContent.find(content => content.pageId === page.id);
                   return (
-                    <div key={page.id} className="p-4 border rounded-lg">
-                      <h4 className="font-medium mb-2">{page.name} Page</h4>
-                      {pageContent ? (
-                        <div className="space-y-3">
-                          <div className="bg-muted p-3 rounded text-sm">
-                            {pageContent.content}
-                          </div>
-                          {pageContent.suggestions && pageContent.suggestions.length > 0 && (
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground mb-1">Suggestions:</p>
-                              <ul className="text-xs text-muted-foreground space-y-1">
-                                {pageContent.suggestions.map((suggestion, index) => (
-                                  <li key={index}>• {suggestion}</li>
-                                ))}
-                              </ul>
-                            </div>
+                    <Card key={page.id} className="border-2">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg">{page.name} Page</CardTitle>
+                          {pageContent && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => regeneratePageContent(page)}
+                              disabled={isGeneratingContent}
+                              className="gap-2"
+                              data-testid={`button-regenerate-${page.id}`}
+                            >
+                              <RefreshCw className="w-3 h-3" />
+                              Regenerate
+                            </Button>
                           )}
                         </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          AI-generated content will appear here for the {page.name.toLowerCase()} page...
-                        </p>
-                      )}
-                    </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Page Direction Field */}
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Additional Direction for {page.name} Page (Optional)
+                          </label>
+                          <Textarea
+                            placeholder={`Provide specific guidance for the ${page.name.toLowerCase()} page content (e.g., "Focus on our 24/7 customer support", "Mention our 15-year experience", "Include pricing tiers")`}
+                            value={pageContent?.pageDirection || ''}
+                            onChange={(e) => updatePageDirection(page.id, e.target.value)}
+                            className="min-h-[60px]"
+                            data-testid={`textarea-direction-${page.id}`}
+                          />
+                        </div>
+
+                        {pageContent ? (
+                          <div className="space-y-4">
+                            {/* Editable Content Area */}
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="text-sm font-medium">Generated Content</label>
+                                {pageContent.hasEdits && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Edited
+                                  </Badge>
+                                )}
+                              </div>
+                              <Textarea
+                                value={pageContent.editedContent || pageContent.content}
+                                onChange={(e) => updatePageContent(page.id, e.target.value)}
+                                className="min-h-[200px] text-sm"
+                                placeholder="Edit the generated content for this page..."
+                                data-testid={`textarea-content-${page.id}`}
+                              />
+                            </div>
+
+                            {/* Suggestions */}
+                            {pageContent.suggestions && pageContent.suggestions.length > 0 && (
+                              <div className="bg-muted/50 p-3 rounded-lg">
+                                <p className="text-xs font-medium text-muted-foreground mb-2">AI Suggestions:</p>
+                                <ul className="text-xs text-muted-foreground space-y-1">
+                                  {pageContent.suggestions.map((suggestion, index) => (
+                                    <li key={index} className="flex items-start gap-2">
+                                      <span className="text-primary mt-0.5">•</span>
+                                      <span>{suggestion}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                            <p>AI-generated content will appear here for the {page.name.toLowerCase()} page.</p>
+                            <p className="text-xs mt-1">Click "Generate Page Content" above to get started.</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
                   );
                 })}
               </div>
