@@ -141,13 +141,15 @@ Respond with JSON in this format:
       const colorInfo = preferences.colors ? ` with ${preferences.colors} colors` : "";
       
       const businessInfo = businessName ? `"${businessName}" ` : "";
-      const basePrompt = `Professional logo design for ${businessInfo}business: "${description}"`;
+      const basePrompt = `Clean logo design for ${businessInfo}business: "${description}"`;
       
       const stylePrompt = `Design style: ${logoStyles}. Logo type: ${logoTypes}${colorInfo}.`;
       
-      const qualityPrompt = "High-quality, clean, scalable vector-style design. Professional appearance suitable for business branding.";
+      const formatPrompt = "IMPORTANT: Show ONLY the logo itself - straight-on view, centered, no mockups, no business cards, no letterheads, no stationary, no angled views, no backgrounds with textures. Just the clean logo design isolated on a plain white or transparent background.";
       
-      const fullPrompt = `${basePrompt}. ${stylePrompt}. ${qualityPrompt}`;
+      const qualityPrompt = "High-quality, clean, scalable vector-style design ready for tracing and professional use.";
+      
+      const fullPrompt = `${basePrompt}. ${stylePrompt}. ${formatPrompt} ${qualityPrompt}`;
       
       console.log("Generating logo with prompt:", fullPrompt);
       

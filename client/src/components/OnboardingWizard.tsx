@@ -149,7 +149,7 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
                   {logoTypes.map((type) => (
                     <div key={type} className="flex items-center space-x-2">
                       <Checkbox
-                        checked={field.value?.includes(type) || false}
+                        checked={field.value?.includes(type as any) || false}
                         onCheckedChange={(checked) => {
                           if (checked) {
                             field.onChange([...(field.value || []), type]);
@@ -180,7 +180,7 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
                   {logoStyles.map((style) => (
                     <div key={style} className="flex items-center space-x-2">
                       <Checkbox
-                        checked={field.value?.includes(style) || false}
+                        checked={field.value?.includes(style as any) || false}
                         onCheckedChange={(checked) => {
                           if (checked) {
                             field.onChange([...(field.value || []), style]);
@@ -281,7 +281,7 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
 
       {/* Logo Gallery */}
       {generatedLogos.length > 0 && (
-        <div className="space-y-4 mt-8 pt-6 border-t">
+        <div className="space-y-4 mt-8 pt-6 border-t" data-testid="container-generated-logos">
           <div className="flex items-center justify-between">
             <h3 className="font-medium">Generated Logo Ideas</h3>
             <Badge variant="secondary">{generatedLogos.length} Options</Badge>
