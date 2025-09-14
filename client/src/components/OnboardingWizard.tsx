@@ -856,7 +856,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
               </div>
               
               <div className="grid gap-4">
-                {pages.slice(0, 3).map((page) => (
+                {pages.map((page) => (
                   <div key={page.id} className="p-4 border rounded-lg">
                     <h4 className="font-medium mb-2">{page.name} Page</h4>
                     <p className="text-sm text-muted-foreground">
