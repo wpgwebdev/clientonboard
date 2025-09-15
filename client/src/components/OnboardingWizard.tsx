@@ -552,13 +552,32 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
   // Function to update page direction
   const updatePageDirection = (pageId: string, direction: string) => {
-    setGeneratedContent(prevContent => 
-      prevContent.map(content => 
-        content.pageId === pageId 
-          ? { ...content, pageDirection: direction }
-          : content
-      )
-    );
+    setGeneratedContent(prevContent => {
+      const existingIndex = prevContent.findIndex(content => content.pageId === pageId);
+      
+      if (existingIndex >= 0) {
+        // Update existing entry
+        return prevContent.map(content => 
+          content.pageId === pageId 
+            ? { ...content, pageDirection: direction }
+            : content
+        );
+      } else {
+        // Create new entry for the page direction
+        const page = pages.find(p => p.id === pageId);
+        if (page) {
+          return [...prevContent, {
+            pageId: pageId,
+            pageName: page.name,
+            content: '',
+            pageDirection: direction,
+            suggestions: [],
+            hasEdits: false
+          }];
+        }
+        return prevContent;
+      }
+    });
   };
 
   // Function to update page content (editing)
