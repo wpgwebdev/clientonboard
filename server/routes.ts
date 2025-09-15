@@ -73,7 +73,7 @@ Respond with JSON in this format:
         ],
         response_format: { type: "json_object" },
         temperature: 0.8, // Restore creative temperature for name generation
-        max_tokens: 300 // Using standard parameter for GPT-4o
+        max_tokens: 300 // Correct parameter for gpt-4o with Chat Completions
       });
 
       console.log("OpenAI response:", JSON.stringify(response, null, 2));
@@ -286,18 +286,19 @@ Respond with JSON in this format:
               console.log(`Attempt ${attempt} for ${page.name} page content generation`);
               
               response = await openai.chat.completions.create({
-                model: "gpt-5",
+                model: "gpt-4o",
                 messages: [
                   {
                     role: "system",
-                    content: "You are a professional web copywriter specializing in comprehensive, conversion-focused website content. Generate full, detailed website copy with multiple substantial paragraphs, compelling headlines, and complete sections. Never provide single sentences - always create comprehensive, ready-to-publish content. Return ONLY valid JSON: { \"content\": \"comprehensive multi-paragraph content with headlines and full sections\", \"suggestions\": [\"specific actionable tip 1\", \"specific actionable tip 2\", \"specific actionable tip 3\"] }"
+                    content: "You are a professional web copywriter specializing in comprehensive, conversion-focused website content. Generate full, detailed website copy with multiple substantial paragraphs, compelling headlines, and complete sections. CRITICAL: Always include the business name prominently in the first paragraph and throughout the content. Never provide single sentences - always create comprehensive, ready-to-publish content. Return ONLY valid JSON: { \"content\": \"comprehensive multi-paragraph content with headlines and full sections\", \"suggestions\": [\"specific actionable tip 1\", \"specific actionable tip 2\", \"specific actionable tip 3\"] }"
                   },
                   {
                     role: "user",
                     content: currentPrompt
                   }
                 ],
-                max_completion_tokens: 1400,
+                response_format: { type: "json_object" },
+                max_tokens: 1400,
                 temperature: attempt > 1 ? 0.2 : 0.7
               });
               
@@ -431,18 +432,19 @@ Respond with JSON in this format:
             console.log(`Regeneration attempt ${attempt} for ${page.name} page`);
             
             response = await openai.chat.completions.create({
-              model: "gpt-5",
+              model: "gpt-4o",
               messages: [
                 {
                   role: "system",
-                  content: "You are a professional web copywriter specializing in comprehensive, conversion-focused website content. Generate full, detailed website copy with multiple substantial paragraphs, compelling headlines, and complete sections. Never provide single sentences - always create comprehensive, ready-to-publish content. Return ONLY valid JSON: { \"content\": \"comprehensive multi-paragraph content with headlines and full sections\", \"suggestions\": [\"specific actionable tip 1\", \"specific actionable tip 2\", \"specific actionable tip 3\"] }"
+                  content: "You are a professional web copywriter specializing in comprehensive, conversion-focused website content. Generate full, detailed website copy with multiple substantial paragraphs, compelling headlines, and complete sections. CRITICAL: Always include the business name prominently in the first paragraph and throughout the content. Never provide single sentences - always create comprehensive, ready-to-publish content. Return ONLY valid JSON: { \"content\": \"comprehensive multi-paragraph content with headlines and full sections\", \"suggestions\": [\"specific actionable tip 1\", \"specific actionable tip 2\", \"specific actionable tip 3\"] }"
                 },
                 {
                   role: "user",
                   content: currentPrompt
                 }
               ],
-              max_completion_tokens: 1400,
+              response_format: { type: "json_object" },
+              max_tokens: 1400,
               temperature: attempt > 1 ? 0.2 : 0.7
             });
             
@@ -575,8 +577,14 @@ BUSINESS CONTEXT:
 ${businessInfo}
 Website Type: ${siteType}
 
+CRITICAL REQUIREMENTS:
+- MUST include the business name "${businessName}" prominently in the first paragraph and throughout the content
+- MUST reference specific services/products mentioned in business description
+- MUST create multiple substantial paragraphs (minimum 3-4 paragraphs)
+- MUST include compelling headlines and clear section breaks${userDirectionNote}
+
 CONTENT REQUIREMENTS:
-${pageSpecificGuidance}${userDirectionNote}
+${pageSpecificGuidance}
 
 STYLE & TONE:
 - ${styleGuidance}
