@@ -1392,20 +1392,28 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
               {/* Photo Types Education */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Website Photo Types Guide</h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {[
-                    { type: 'Hero Images', desc: 'Large banner images that make a strong first impression' },
-                    { type: 'Product/Service Shots', desc: 'Showcase what you offer with clear, detailed imagery' },
-                    { type: 'Team Photos', desc: 'Build trust with professional headshots and team pictures' },
-                    { type: 'Process/Behind-the-Scenes', desc: 'Show how you work and what makes you unique' },
-                    { type: 'Testimonial Support', desc: 'Images that accompany customer reviews and success stories' },
-                    { type: 'Background/Texture Images', desc: 'Subtle patterns or textures that enhance design elements' }
-                  ].map((photoInfo) => (
-                    <div key={photoInfo.type} className="p-3 border rounded-lg">
-                      <div className="font-medium text-sm text-primary">{photoInfo.type}</div>
-                      <div className="text-xs text-muted-foreground mt-1">{photoInfo.desc}</div>
-                    </div>
-                  ))}
+                <p className="text-sm text-muted-foreground">
+                  Here are the common types of photos used on professional websites:
+                </p>
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {[
+                      { type: 'Hero Images', desc: 'Large banner images that make a strong first impression' },
+                      { type: 'Product/Service Shots', desc: 'Showcase what you offer with clear, detailed imagery' },
+                      { type: 'Team Photos', desc: 'Build trust with professional headshots and team pictures' },
+                      { type: 'Process/Behind-the-Scenes', desc: 'Show how you work and what makes you unique' },
+                      { type: 'Testimonial Support', desc: 'Images that accompany customer reviews and success stories' },
+                      { type: 'Background/Texture Images', desc: 'Subtle patterns or textures that enhance design elements' }
+                    ].map((photoInfo) => (
+                      <div key={photoInfo.type} className="flex items-start gap-2">
+                        <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></div>
+                        <div>
+                          <div className="font-medium text-sm">{photoInfo.type}</div>
+                          <div className="text-xs text-muted-foreground">{photoInfo.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
