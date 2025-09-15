@@ -153,3 +153,30 @@ export const uploadedImageSchema = z.object({
 
 export type ImageRequirements = z.infer<typeof imageRequirementsSchema>;
 export type UploadedImage = z.infer<typeof uploadedImageSchema>;
+
+// Project Submission Schema
+export const projectSubmissionSchema = z.object({
+  businessName: z.string(),
+  businessDescription: z.string(),
+  selectedSiteType: z.string(),
+  pages: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    path: z.string(),
+    required: z.boolean().optional()
+  })),
+  logoDecision: z.enum(['final', 'direction']).optional(),
+  logoFile: z.string().optional(), // Base64 or file reference
+  selectedLogo: generatedLogoSchema.optional(),
+  contentPreferences: contentPreferencesSchema,
+  generatedContent: z.array(generatedContentSchema),
+  imageRequirements: imageRequirementsSchema,
+  designPreferences: z.object({
+    selectedStyle: z.string(),
+    inspirationLinks: z.array(z.string()),
+    additionalNotes: z.string()
+  }),
+  submittedAt: z.string().optional()
+});
+
+export type ProjectSubmission = z.infer<typeof projectSubmissionSchema>;

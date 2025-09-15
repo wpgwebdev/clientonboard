@@ -677,12 +677,270 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
   const exportPDF = () => {
     console.log('Exporting creative brief as PDF...');
-    // TODO: Implement PDF export
+    
+    try {
+      // Import jsPDF dynamically
+      import('jspdf').then(({ jsPDF }) => {
+        const doc = new jsPDF();
+        let yPosition = 20;
+        const lineHeight = 8;
+        const pageWidth = 210;
+        const margin = 20;
+        const maxWidth = pageWidth - (margin * 2);
+
+        // Title
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Creative Brief', margin, yPosition);
+        yPosition += lineHeight * 2;
+
+        // Business Information
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Business Information', margin, yPosition);
+        yPosition += lineHeight;
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Business Name: ${businessName}`, margin, yPosition);
+        yPosition += lineHeight;
+        
+        // Split long description text
+        const descriptionLines = doc.splitTextToSize(`Description: ${businessDescription}`, maxWidth);
+        doc.text(descriptionLines, margin, yPosition);
+        yPosition += lineHeight * descriptionLines.length + 5;
+
+        // Website Type & Pages
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Website Information', margin, yPosition);
+        yPosition += lineHeight;
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Website Type: ${selectedSiteType}`, margin, yPosition);
+        yPosition += lineHeight + 3;
+        
+        doc.text('Pages:', margin, yPosition);
+        yPosition += lineHeight;
+        pages.forEach(page => {
+          doc.text(`• ${page.name} (${page.path})`, margin + 5, yPosition);
+          yPosition += lineHeight;
+        });
+        yPosition += 5;
+
+        // Logo Information
+        if (logoDecision || logoFile) {
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Branding & Logo', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          if (logoFile) {
+            doc.text('Logo: Custom logo uploaded', margin, yPosition);
+          } else if (selectedLogo) {
+            doc.text('Logo: AI-generated logo selected', margin, yPosition);
+          }
+          yPosition += lineHeight + 5;
+        }
+
+        // Content Preferences
+        if (contentPreferences) {
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Content Preferences', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Style: ${contentPreferences.style}`, margin, yPosition);
+          yPosition += lineHeight;
+          doc.text(`Tone: ${contentPreferences.tone}`, margin, yPosition);
+          yPosition += lineHeight;
+          doc.text(`Video Content: ${contentPreferences.useVideo ? 'Yes' : 'No'}`, margin, yPosition);
+          yPosition += lineHeight + 5;
+        }
+
+        // Image Requirements
+        if (imageRequirements) {
+          // Check if we need a new page
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Image & Media Requirements', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Logo Needs: ${imageRequirements.logoNeeds}`, margin, yPosition);
+          yPosition += lineHeight;
+          
+          if (imageRequirements.logoDescription) {
+            const logoDescLines = doc.splitTextToSize(`Logo Description: ${imageRequirements.logoDescription}`, maxWidth);
+            doc.text(logoDescLines, margin, yPosition);
+            yPosition += lineHeight * logoDescLines.length;
+          }
+          
+          doc.text('Photo Types Needed:', margin, yPosition);
+          yPosition += lineHeight;
+          if (imageRequirements.teamPhotos) doc.text('• Team/Staff Photos', margin + 5, yPosition), yPosition += lineHeight;
+          if (imageRequirements.productPhotos) doc.text('• Product Photos', margin + 5, yPosition), yPosition += lineHeight;
+          if (imageRequirements.facilityPhotos) doc.text('• Facility Photos', margin + 5, yPosition), yPosition += lineHeight;
+          
+          if (imageRequirements.preferredPhotoStyle) {
+            doc.text(`Photo Style: ${imageRequirements.preferredPhotoStyle}`, margin, yPosition);
+            yPosition += lineHeight;
+          }
+          
+          if (imageRequirements.stockPhotoPreference) {
+            doc.text(`Stock Photo Preference: ${imageRequirements.stockPhotoPreference}`, margin, yPosition);
+            yPosition += lineHeight;
+          }
+          
+          if (imageRequirements.specificImages && imageRequirements.specificImages.length > 0) {
+            doc.text('Specific Images Needed:', margin, yPosition);
+            yPosition += lineHeight;
+            imageRequirements.specificImages.forEach(image => {
+              const imageLines = doc.splitTextToSize(`• ${image}`, maxWidth - 5);
+              doc.text(imageLines, margin + 5, yPosition);
+              yPosition += lineHeight * imageLines.length;
+            });
+          }
+          yPosition += 5;
+        }
+
+        // Design Preferences
+        if (designPreferences.selectedStyle) {
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Design Preferences', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Design Style: ${designPreferences.selectedStyle}`, margin, yPosition);
+          yPosition += lineHeight;
+          
+          if (designPreferences.inspirationLinks.length > 0) {
+            doc.text('Inspiration Links:', margin, yPosition);
+            yPosition += lineHeight;
+            designPreferences.inspirationLinks.forEach(link => {
+              doc.text(`• ${link}`, margin + 5, yPosition);
+              yPosition += lineHeight;
+            });
+          }
+          
+          if (designPreferences.additionalNotes) {
+            const notesLines = doc.splitTextToSize(`Additional Notes: ${designPreferences.additionalNotes}`, maxWidth);
+            doc.text(notesLines, margin, yPosition);
+            yPosition += lineHeight * notesLines.length;
+          }
+        }
+
+        // Generated Content Summary
+        if (generatedContent.length > 0) {
+          if (yPosition > 220) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Generated Content', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Content generated for ${generatedContent.length} pages`, margin, yPosition);
+          yPosition += lineHeight;
+          
+          generatedContent.forEach(content => {
+            doc.text(`• ${content.pageName}`, margin + 5, yPosition);
+            yPosition += lineHeight;
+          });
+        }
+
+        // Footer
+        const currentDate = new Date().toLocaleDateString();
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'italic');
+        doc.text(`Generated on ${currentDate}`, margin, 280);
+
+        // Save the PDF
+        doc.save(`${businessName || 'Creative Brief'}_${currentDate.replace(/\//g, '-')}.pdf`);
+        
+        toast({
+          title: "PDF Downloaded!",
+          description: "Your creative brief has been exported as a PDF."
+        });
+      });
+    } catch (error) {
+      console.error('PDF Export Error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Unable to export PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const submitProject = () => {
+  const submitProject = async () => {
     console.log('Submitting project...');
-    // TODO: Implement project submission
+    
+    try {
+      // Prepare submission data
+      const submissionData = {
+        businessName,
+        businessDescription,
+        selectedSiteType,
+        pages,
+        logoDecision,
+        logoFile: logoFile ? 'uploaded_file' : undefined, // In production, convert to base64 or upload separately
+        selectedLogo,
+        contentPreferences,
+        generatedContent,
+        imageRequirements,
+        designPreferences
+      };
+
+      // Submit to backend
+      const response = await apiRequest('POST', '/api/project/submit', submissionData);
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to submit project');
+      }
+
+      const result = await response.json();
+      
+      toast({
+        title: "Project Submitted!",
+        description: result.message || "Your creative brief has been submitted successfully."
+      });
+
+      // Move to completion step
+      setCurrentStep(10);
+      setCompletedSteps(prev => new Set([...Array.from(prev), 9]));
+
+    } catch (error: any) {
+      console.error('Submission error:', error);
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Unable to submit project. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const renderStepContent = () => {

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
-import { logoGenerationRequestSchema, type GeneratedLogo, contentGenerationRequestSchema, pageRegenerationRequestSchema } from "../shared/schema";
+import { logoGenerationRequestSchema, type GeneratedLogo, contentGenerationRequestSchema, pageRegenerationRequestSchema, projectSubmissionSchema, type ProjectSubmission } from "../shared/schema";
 
 // OpenAI integration - the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -611,6 +611,54 @@ Generate complete, ready-to-use web copy with proper structure, headings, and fu
     
     return guidance[pageName] || `Create compelling content for the ${pageName} page that aligns with the overall ${siteType} website goals and helps convert visitors into customers.`;
   }
+
+  // Project submission endpoint
+  app.post("/api/project/submit", async (req, res) => {
+    try {
+      // Validate the submission data (excluding submittedAt since storage will add it)
+      const { submittedAt, ...submissionData } = projectSubmissionSchema.parse(req.body);
+
+      // Store the submission using the storage layer
+      const storedSubmission = await storage.createProjectSubmission(submissionData);
+
+      console.log('Project submission received and stored:', {
+        id: storedSubmission.id,
+        businessName: storedSubmission.businessName,
+        submittedAt: storedSubmission.submittedAt,
+        pages: storedSubmission.pages.length,
+        hasContent: storedSubmission.generatedContent.length > 0,
+        hasLogo: !!storedSubmission.selectedLogo || !!storedSubmission.logoFile
+      });
+
+      // Here you would typically:
+      // 1. Send notification emails
+      // 2. Create project in project management system
+      // 3. Trigger workflows
+
+      res.json({
+        success: true,
+        projectId: storedSubmission.id,
+        message: "Creative brief submitted successfully! Our team will review it and reach out within 24 hours.",
+        submittedAt: storedSubmission.submittedAt
+      });
+
+    } catch (error: any) {
+      console.error('Project submission error:', error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid submission data",
+          details: error.errors
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        error: "Failed to submit project. Please try again."
+      });
+    }
+  });
 
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
