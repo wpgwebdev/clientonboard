@@ -121,3 +121,35 @@ export type ContentPreferences = z.infer<typeof contentPreferencesSchema>;
 export type ContentGenerationRequest = z.infer<typeof contentGenerationRequestSchema>;
 export type GeneratedContent = z.infer<typeof generatedContentSchema>;
 export type PageRegenerationRequest = z.infer<typeof pageRegenerationRequestSchema>;
+
+// Images & Media Schemas
+export const imageRequirementsSchema = z.object({
+  logoNeeds: z.enum(['have-logo', 'need-logo', 'need-variations']),
+  logoDescription: z.string().optional(),
+  specificImages: z.array(z.string()).optional(), // List of specific images needed
+  teamPhotos: z.boolean().optional(),
+  productPhotos: z.boolean().optional(),
+  facilityPhotos: z.boolean().optional(),
+  preferredPhotoStyle: z.enum([
+    'professional-corporate',
+    'lifestyle-candid', 
+    'modern-minimalist',
+    'warm-friendly',
+    'high-energy',
+    'artistic-creative'
+  ]).optional(),
+  stockPhotoPreference: z.enum(['free-library', 'premium-paid', 'mixed']).optional(),
+  additionalNotes: z.string().optional()
+});
+
+export const uploadedImageSchema = z.object({
+  id: z.string(),
+  filename: z.string(),
+  fileType: z.string(),
+  fileSize: z.number(),
+  category: z.enum(['logo', 'team', 'product', 'facility', 'other']).optional(),
+  description: z.string().optional()
+});
+
+export type ImageRequirements = z.infer<typeof imageRequirementsSchema>;
+export type UploadedImage = z.infer<typeof uploadedImageSchema>;

@@ -16,7 +16,9 @@ import {
   logoPreferencesSchema,
   type ContentPreferences,
   contentPreferencesSchema,
-  type GeneratedContent
+  type GeneratedContent,
+  type ImageRequirements,
+  imageRequirementsSchema
 } from "@shared/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -414,6 +416,19 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     selectedStyle: "",
     inspirationLinks: [],
     additionalNotes: ""
+  });
+  
+  // Images & Media state
+  const [imageRequirements, setImageRequirements] = useState<ImageRequirements>({
+    logoNeeds: 'need-logo',
+    logoDescription: '',
+    specificImages: [],
+    teamPhotos: false,
+    productPhotos: false,
+    facilityPhotos: false,
+    preferredPhotoStyle: 'professional-corporate',
+    stockPhotoPreference: 'mixed',
+    additionalNotes: ''
   });
 
   const stepData = steps.map(step => ({
@@ -1202,18 +1217,228 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           <Card>
             <CardHeader>
               <CardTitle>Images & Media</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
               <p className="text-muted-foreground">
-                Upload images for your website or let us know what type of images you need.
+                Help us understand your image needs and preferences for your website.
               </p>
-              <FileUpload
-                onFileSelect={(file) => console.log('Media file uploaded:', file.name)}
-                onFileRemove={() => console.log('Media file removed')}
-                acceptedTypes="image/*,video/*"
-                maxSize={50}
-                placeholder="Upload images, videos, or other media files"
-              />
+            </CardHeader>
+            <CardContent className="space-y-8">
+              
+              {/* Logo Requirements */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Logo Requirements</h3>
+                <div className="grid gap-4">
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Do you have a logo or need one created?</label>
+                    <div className="grid gap-3">
+                      {[
+                        { value: 'have-logo', label: 'I have a logo already', desc: 'Upload your existing logo files' },
+                        { value: 'need-logo', label: 'I need a logo designed', desc: 'We\'ll create a professional logo for you' },
+                        { value: 'need-variations', label: 'I have a logo but need variations', desc: 'Existing logo with additional formats/versions' }
+                      ].map((option) => (
+                        <label key={option.value} className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover-elevate">
+                          <input
+                            type="radio"
+                            name="logoNeeds"
+                            value={option.value}
+                            checked={imageRequirements.logoNeeds === option.value}
+                            onChange={(e) => setImageRequirements(prev => ({ 
+                              ...prev, 
+                              logoNeeds: e.target.value as any 
+                            }))}
+                            className="mt-1"
+                            data-testid={`radio-logo-needs-${option.value}`}
+                          />
+                          <div>
+                            <div className="font-medium text-sm">{option.label}</div>
+                            <div className="text-xs text-muted-foreground">{option.desc}</div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {imageRequirements.logoNeeds === 'need-logo' && (
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Logo Description (Optional)
+                      </label>
+                      <Textarea
+                        placeholder="Describe your logo vision, preferred colors, symbols, or style"
+                        value={imageRequirements.logoDescription || ''}
+                        onChange={(e) => setImageRequirements(prev => ({ 
+                          ...prev, 
+                          logoDescription: e.target.value 
+                        }))}
+                        className="min-h-[80px]"
+                        data-testid="textarea-logo-description"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Specific Image Needs */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">What Types of Photos Do You Need?</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {[
+                    { key: 'teamPhotos', label: 'Team/Staff Photos', desc: 'Professional headshots or team group photos' },
+                    { key: 'productPhotos', label: 'Product Photos', desc: 'High-quality images of your products/services' },
+                    { key: 'facilityPhotos', label: 'Location/Facility Photos', desc: 'Images of your office, store, or workspace' }
+                  ].map((photoType) => (
+                    <label key={photoType.key} className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover-elevate">
+                      <Checkbox
+                        checked={imageRequirements[photoType.key as keyof ImageRequirements] as boolean}
+                        onCheckedChange={(checked) => setImageRequirements(prev => ({ 
+                          ...prev, 
+                          [photoType.key]: checked 
+                        }))}
+                        data-testid={`checkbox-${photoType.key}`}
+                      />
+                      <div>
+                        <div className="font-medium text-sm">{photoType.label}</div>
+                        <div className="text-xs text-muted-foreground">{photoType.desc}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Additional Specific Images */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Other Specific Images Needed</h3>
+                <Textarea
+                  placeholder="List any other specific images you need (e.g., 'photos of our manufacturing process', 'before/after examples', 'event photos')"
+                  value={imageRequirements.specificImages?.join('\n') || ''}
+                  onChange={(e) => setImageRequirements(prev => ({ 
+                    ...prev, 
+                    specificImages: e.target.value.split('\n').filter(line => line.trim()) 
+                  }))}
+                  className="min-h-[100px]"
+                  data-testid="textarea-specific-images"
+                />
+              </div>
+
+              {/* Photo Style Preferences */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Photo Style Preference</h3>
+                <div className="grid gap-3">
+                  {[
+                    { value: 'professional-corporate', label: 'Professional Corporate', desc: 'Clean, polished, business-focused imagery' },
+                    { value: 'lifestyle-candid', label: 'Lifestyle & Candid', desc: 'Natural, authentic, everyday moments' },
+                    { value: 'modern-minimalist', label: 'Modern Minimalist', desc: 'Clean, simple, lots of white space' },
+                    { value: 'warm-friendly', label: 'Warm & Friendly', desc: 'Inviting, approachable, community-focused' },
+                    { value: 'high-energy', label: 'High Energy', desc: 'Dynamic, action-oriented, vibrant' },
+                    { value: 'artistic-creative', label: 'Artistic & Creative', desc: 'Unique angles, creative composition, artistic flair' }
+                  ].map((style) => (
+                    <label key={style.value} className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover-elevate">
+                      <input
+                        type="radio"
+                        name="photoStyle"
+                        value={style.value}
+                        checked={imageRequirements.preferredPhotoStyle === style.value}
+                        onChange={(e) => setImageRequirements(prev => ({ 
+                          ...prev, 
+                          preferredPhotoStyle: e.target.value as any 
+                        }))}
+                        className="mt-1"
+                        data-testid={`radio-photo-style-${style.value}`}
+                      />
+                      <div>
+                        <div className="font-medium text-sm">{style.label}</div>
+                        <div className="text-xs text-muted-foreground">{style.desc}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Stock Photography Options */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Stock Photography Options</h3>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    For any images you don't provide, we can source professional stock photography:
+                  </p>
+                  <div className="grid gap-3">
+                    {[
+                      { value: 'free-library', label: 'Free Stock Library', desc: 'High-quality free images (limited selection)' },
+                      { value: 'premium-paid', label: 'Premium Paid Stock', desc: 'Extensive professional library (higher cost)' },
+                      { value: 'mixed', label: 'Mixed Approach', desc: 'Free where possible, premium for key images' }
+                    ].map((option) => (
+                      <label key={option.value} className="flex items-start gap-3 p-3 bg-background border rounded-lg cursor-pointer hover-elevate">
+                        <input
+                          type="radio"
+                          name="stockPhotoPreference"
+                          value={option.value}
+                          checked={imageRequirements.stockPhotoPreference === option.value}
+                          onChange={(e) => setImageRequirements(prev => ({ 
+                            ...prev, 
+                            stockPhotoPreference: e.target.value as any 
+                          }))}
+                          className="mt-1"
+                          data-testid={`radio-stock-preference-${option.value}`}
+                        />
+                        <div>
+                          <div className="font-medium text-sm">{option.label}</div>
+                          <div className="text-xs text-muted-foreground">{option.desc}</div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Photo Types Education */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Website Photo Types Guide</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {[
+                    { type: 'Hero Images', desc: 'Large banner images that make a strong first impression' },
+                    { type: 'Product/Service Shots', desc: 'Showcase what you offer with clear, detailed imagery' },
+                    { type: 'Team Photos', desc: 'Build trust with professional headshots and team pictures' },
+                    { type: 'Process/Behind-the-Scenes', desc: 'Show how you work and what makes you unique' },
+                    { type: 'Testimonial Support', desc: 'Images that accompany customer reviews and success stories' },
+                    { type: 'Background/Texture Images', desc: 'Subtle patterns or textures that enhance design elements' }
+                  ].map((photoInfo) => (
+                    <div key={photoInfo.type} className="p-3 border rounded-lg">
+                      <div className="font-medium text-sm text-primary">{photoInfo.type}</div>
+                      <div className="text-xs text-muted-foreground mt-1">{photoInfo.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* File Upload */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Upload Your Images</h3>
+                <p className="text-sm text-muted-foreground">
+                  Upload any logos, photos, or other media files you already have.
+                </p>
+                <FileUpload
+                  onFileSelect={(file) => console.log('Media file uploaded:', file.name)}
+                  onFileRemove={() => console.log('Media file removed')}
+                  acceptedTypes="image/*,video/*"
+                  maxSize={50}
+                  placeholder="Upload logos, photos, videos, or other media files"
+                />
+              </div>
+
+              {/* Additional Notes */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Additional Notes</h3>
+                <Textarea
+                  placeholder="Any other image-related requirements, preferences, or special considerations"
+                  value={imageRequirements.additionalNotes || ''}
+                  onChange={(e) => setImageRequirements(prev => ({ 
+                    ...prev, 
+                    additionalNotes: e.target.value 
+                  }))}
+                  className="min-h-[80px]"
+                  data-testid="textarea-additional-notes"
+                />
+              </div>
+
             </CardContent>
           </Card>
         );
