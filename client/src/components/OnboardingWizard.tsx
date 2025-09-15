@@ -518,12 +518,21 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     console.log('Generating AI content for pages...');
     
     try {
+      // Collect page directions from existing content
+      const pageDirections = generatedContent
+        .filter(content => content.pageDirection && content.pageDirection.trim() !== '')
+        .map(content => ({
+          pageId: content.pageId,
+          direction: content.pageDirection!
+        }));
+
       const response = await apiRequest('POST', '/api/content/generate', {
         businessName,
         businessDescription,
         siteType: selectedSiteType,
         pages: pages.map(p => ({ id: p.id, name: p.name, path: p.path })),
-        preferences: contentPreferences
+        preferences: contentPreferences,
+        pageDirections: pageDirections
       });
       
       if (!response.ok) {

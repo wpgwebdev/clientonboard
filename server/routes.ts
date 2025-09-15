@@ -255,7 +255,7 @@ Respond with JSON in this format:
         });
       }
       
-      const { businessName, businessDescription, siteType, pages, preferences } = validationResult.data;
+      const { businessName, businessDescription, siteType, pages, preferences, pageDirections } = validationResult.data;
       
       console.log("Generating content for pages:", pages.map(p => p.name));
       
@@ -263,12 +263,16 @@ Respond with JSON in this format:
       
       for (const page of pages) {
         try {
+          // Find user direction for this page
+          const userDirection = pageDirections?.find(d => d.pageId === page.id)?.direction;
+          
           const contentPrompt = buildContentPrompt(
             businessName, 
             businessDescription, 
             siteType, 
             page, 
-            preferences
+            preferences,
+            userDirection
           );
           
           console.log(`Generating content for ${page.name} page...`);
@@ -286,14 +290,14 @@ Respond with JSON in this format:
                 messages: [
                   {
                     role: "system",
-                    content: "You are a professional web copywriter. Generate detailed website copy. Return ONLY valid JSON: { \"content\": \"full detailed page content with multiple paragraphs\", \"suggestions\": [\"tip1\", \"tip2\", \"tip3\"] }"
+                    content: "You are a professional web copywriter specializing in comprehensive, conversion-focused website content. Generate full, detailed website copy with multiple substantial paragraphs, compelling headlines, and complete sections. Never provide single sentences - always create comprehensive, ready-to-publish content. Return ONLY valid JSON: { \"content\": \"comprehensive multi-paragraph content with headlines and full sections\", \"suggestions\": [\"specific actionable tip 1\", \"specific actionable tip 2\", \"specific actionable tip 3\"] }"
                   },
                   {
                     role: "user",
                     content: currentPrompt
                   }
                 ],
-                max_tokens: 1400,
+                max_completion_tokens: 1400,
                 temperature: attempt > 1 ? 0.2 : 0.7
               });
               
@@ -431,14 +435,14 @@ Respond with JSON in this format:
               messages: [
                 {
                   role: "system",
-                  content: "You are a professional web copywriter. Generate detailed website copy. Return ONLY valid JSON: { \"content\": \"full detailed page content with multiple paragraphs\", \"suggestions\": [\"tip1\", \"tip2\", \"tip3\"] }"
+                  content: "You are a professional web copywriter specializing in comprehensive, conversion-focused website content. Generate full, detailed website copy with multiple substantial paragraphs, compelling headlines, and complete sections. Never provide single sentences - always create comprehensive, ready-to-publish content. Return ONLY valid JSON: { \"content\": \"comprehensive multi-paragraph content with headlines and full sections\", \"suggestions\": [\"specific actionable tip 1\", \"specific actionable tip 2\", \"specific actionable tip 3\"] }"
                 },
                 {
                   role: "user",
                   content: currentPrompt
                 }
               ],
-              max_tokens: 1400,
+              max_completion_tokens: 1400,
               temperature: attempt > 1 ? 0.2 : 0.7
             });
             
@@ -535,7 +539,8 @@ Respond with JSON in this format:
     businessDescription: string, 
     siteType: string, 
     page: { name: string; path: string }, 
-    preferences: { style: string; useVideo: boolean; tone: string }
+    preferences: { style: string; useVideo: boolean; tone: string },
+    userDirection?: string
   ): string {
     const businessInfo = `Business: "${businessName}" - ${businessDescription}`;
     const siteInfo = `Website type: ${siteType}`;
@@ -560,6 +565,10 @@ Respond with JSON in this format:
     
     const pageSpecificGuidance = getPageSpecificGuidance(page.name, siteType);
     
+    const userDirectionNote = userDirection ? 
+      `\n\nSPECIAL USER DIRECTION: ${userDirection}
+IMPORTANT: Follow this specific direction closely and incorporate it prominently into the content.` : '';
+    
     return `Create comprehensive website copy for a ${page.name} page.
 
 BUSINESS CONTEXT:
@@ -567,7 +576,7 @@ ${businessInfo}
 Website Type: ${siteType}
 
 CONTENT REQUIREMENTS:
-${pageSpecificGuidance}
+${pageSpecificGuidance}${userDirectionNote}
 
 STYLE & TONE:
 - ${styleGuidance}

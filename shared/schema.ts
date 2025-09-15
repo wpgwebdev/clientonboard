@@ -87,7 +87,11 @@ export const contentGenerationRequestSchema = z.object({
     name: z.string(),
     path: z.string()
   })),
-  preferences: contentPreferencesSchema
+  preferences: contentPreferencesSchema,
+  pageDirections: z.array(z.object({
+    pageId: z.string(),
+    direction: z.string()
+  })).optional() // Array of page directions from user
 });
 
 export const generatedContentSchema = z.object({
