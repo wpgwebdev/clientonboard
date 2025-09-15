@@ -430,6 +430,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     stockPhotoPreference: 'mixed',
     additionalNotes: ''
   });
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
 
   const stepData = steps.map(step => ({
     ...step,
@@ -1735,8 +1736,23 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                   Upload any logos, photos, or other media files you already have.
                 </p>
                 <FileUpload
-                  onFileSelect={(file) => console.log('Media file uploaded:', file.name)}
-                  onFileRemove={() => console.log('Media file removed')}
+                  onFileSelect={(file) => {
+                    setMediaFiles(prev => [...prev, file]);
+                    console.log('Media file uploaded:', file.name);
+                    toast({
+                      title: "File Uploaded",
+                      description: `${file.name} has been uploaded successfully.`
+                    });
+                  }}
+                  onFileRemove={() => {
+                    setMediaFiles([]);
+                    console.log('Media file removed');
+                    toast({
+                      title: "File Removed",
+                      description: "Media file has been removed."
+                    });
+                  }}
+                  currentFile={mediaFiles[0]}
                   acceptedTypes="image/*,video/*"
                   maxSize={50}
                   placeholder="Upload logos, photos, videos, or other media files"
@@ -1790,7 +1806,11 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             'yellow': '#EAB308',
             'pink': '#EC4899',
             'teal': '#14B8A6',
-            'indigo': '#6366F1'
+            'indigo': '#6366F1',
+            'grey': '#6B7280',
+            'gray': '#6B7280',
+            'black': '#1F2937',
+            'white': '#F9FAFB'
           };
           
           const foundColors: string[] = [];
@@ -1806,6 +1826,11 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           // If forest green specifically mentioned, prioritize it
           if (notesLower.includes('forest green')) {
             return ['#228B22', '#2F7D32']; // Forest green variations
+          }
+          
+          // If grey/gray specifically mentioned, prioritize it
+          if (notesLower.includes('grey') || notesLower.includes('gray')) {
+            return ['#6B7280', '#4B5563']; // Grey variations
           }
           
           // Return found colors or style-based defaults
