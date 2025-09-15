@@ -675,12 +675,12 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     }
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
     console.log('Exporting creative brief as PDF...');
     
     try {
       // Import jsPDF dynamically
-      import('jspdf').then(({ jsPDF }) => {
+      const { jsPDF } = await import('jspdf');
         const doc = new jsPDF();
         let yPosition = 20;
         const lineHeight = 8;
@@ -738,12 +738,56 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           
           doc.setFontSize(12);
           doc.setFont('helvetica', 'normal');
-          if (logoFile) {
-            doc.text('Logo: Custom logo uploaded', margin, yPosition);
-          } else if (selectedLogo) {
-            doc.text('Logo: AI-generated logo selected', margin, yPosition);
+          
+          // Try to embed the logo image
+          try {
+            if (logoFile && logoFile instanceof File) {
+              // For uploaded logo files - handle async FileReader
+              const logoDataUrl = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  if (e.target?.result) {
+                    resolve(e.target.result as string);
+                  } else {
+                    reject(new Error('Failed to read file'));
+                  }
+                };
+                reader.onerror = () => reject(new Error('FileReader error'));
+                reader.readAsDataURL(logoFile);
+              });
+              
+              // Detect image format from data URL
+              const imageFormat = logoDataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+              doc.addImage(logoDataUrl, imageFormat, margin, yPosition, 30, 20);
+              yPosition += 25;
+              doc.text('Logo: Custom logo uploaded', margin, yPosition);
+              yPosition += lineHeight + 5;
+            } else if (selectedLogo && selectedLogo.dataUrl) {
+              // For AI-generated logos
+              const imageFormat = selectedLogo.dataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+              doc.addImage(selectedLogo.dataUrl, imageFormat, margin, yPosition, 30, 20);
+              yPosition += 25;
+              doc.text('Logo: AI-generated logo selected', margin, yPosition);
+              yPosition += lineHeight + 5;
+            } else {
+              // Fallback text-only
+              if (logoFile) {
+                doc.text('Logo: Custom logo uploaded', margin, yPosition);
+              } else if (selectedLogo) {
+                doc.text('Logo: AI-generated logo selected', margin, yPosition);
+              }
+              yPosition += lineHeight + 5;
+            }
+          } catch (logoError) {
+            console.log('Could not embed logo in PDF:', logoError);
+            // Fallback to text description
+            if (logoFile) {
+              doc.text('Logo: Custom logo uploaded', margin, yPosition);
+            } else if (selectedLogo) {
+              doc.text('Logo: AI-generated logo selected', margin, yPosition);
+            }
+            yPosition += lineHeight + 5;
           }
-          yPosition += lineHeight + 5;
         }
 
         // Content Preferences
@@ -848,7 +892,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           }
         }
 
-        // Generated Content Summary
+        // Generated Content Full Details
         if (generatedContent.length > 0) {
           if (yPosition > 220) {
             doc.addPage();
@@ -858,16 +902,26 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           doc.setFontSize(16);
           doc.setFont('helvetica', 'bold');
           doc.text('Generated Content', margin, yPosition);
-          yPosition += lineHeight;
+          yPosition += lineHeight * 2;
           
-          doc.setFontSize(12);
-          doc.setFont('helvetica', 'normal');
-          doc.text(`Content generated for ${generatedContent.length} pages`, margin, yPosition);
-          yPosition += lineHeight;
-          
-          generatedContent.forEach(content => {
-            doc.text(`• ${content.pageName}`, margin + 5, yPosition);
+          generatedContent.forEach((content, index) => {
+            // Check if we need a new page for each content section
+            if (yPosition > 200) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${content.pageName} Page`, margin, yPosition);
             yPosition += lineHeight;
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            // Split content into multiple lines
+            const contentLines = doc.splitTextToSize(content.content, maxWidth);
+            doc.text(contentLines, margin, yPosition);
+            yPosition += lineHeight * contentLines.length + 10;
           });
         }
 
@@ -884,7 +938,6 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           title: "PDF Downloaded!",
           description: "Your creative brief has been exported as a PDF."
         });
-      });
     } catch (error) {
       console.error('PDF Export Error:', error);
       toast({
@@ -1725,13 +1778,58 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         );
 
       case 9:
+        // Extract colors from design notes or use defaults based on design style
+        const extractColorsFromNotes = (notes: string): string[] => {
+          const colorKeywords = {
+            'forest green': '#228B22',
+            'green': '#10B981',
+            'blue': '#3B82F6',
+            'red': '#EF4444',
+            'purple': '#8B5CF6',
+            'orange': '#F97316',
+            'yellow': '#EAB308',
+            'pink': '#EC4899',
+            'teal': '#14B8A6',
+            'indigo': '#6366F1'
+          };
+          
+          const foundColors: string[] = [];
+          const notesLower = notes.toLowerCase();
+          
+          // Check for color keywords in notes
+          Object.entries(colorKeywords).forEach(([keyword, hex]) => {
+            if (notesLower.includes(keyword)) {
+              foundColors.push(hex);
+            }
+          });
+          
+          // If forest green specifically mentioned, prioritize it
+          if (notesLower.includes('forest green')) {
+            return ['#228B22', '#2F7D32']; // Forest green variations
+          }
+          
+          // Return found colors or style-based defaults
+          if (foundColors.length > 0) {
+            return foundColors.slice(0, 2); // Max 2 colors
+          }
+          
+          // Default colors based on design style
+          switch (designPreferences.selectedStyle) {
+            case 'luxury': return ['#1F2937', '#D4AF37'];
+            case 'tech': return ['#3B82F6', '#6366F1'];
+            case 'creative': return ['#EC4899', '#8B5CF6'];
+            case 'corporate': return ['#1F2937', '#3B82F6'];
+            default: return ['#3B82F6', '#10B981'];
+          }
+        };
+
         const briefData: CreativeBriefData = {
           businessName,
           businessDescription,
           logoFile: logoFile || undefined,
           logoDecision: logoDecision || undefined,
           selectedLogo: selectedLogo || undefined,
-          colors: ['#3B82F6', '#10B981'], // Mock colors
+          colors: extractColorsFromNotes(designPreferences.additionalNotes || ''),
           fonts: ['Inter', 'Open Sans'], // Mock fonts
           siteType: selectedSiteType,
           pages: pages.map(p => ({ name: p.name, path: p.path })),
