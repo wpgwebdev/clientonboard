@@ -16,6 +16,7 @@ export interface DesignStyle {
 
 export interface DesignPreferences {
   selectedStyle?: string;
+  colorTheme?: string;
   inspirationLinks: string[];
   additionalNotes: string;
 }
@@ -65,6 +66,66 @@ const designStyles: DesignStyle[] = [
   }
 ];
 
+export interface ColorTheme {
+  id: string;
+  name: string;
+  description: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+}
+
+const colorThemes: ColorTheme[] = [
+  {
+    id: "blue-professional",
+    name: "Professional Blue",
+    description: "Classic blue scheme for business and corporate sites",
+    primaryColor: "#3B82F6",
+    secondaryColor: "#1E40AF", 
+    accentColor: "#60A5FA"
+  },
+  {
+    id: "green-nature",
+    name: "Natural Green",
+    description: "Fresh green palette for eco-friendly and health brands",
+    primaryColor: "#10B981",
+    secondaryColor: "#059669",
+    accentColor: "#34D399"
+  },
+  {
+    id: "purple-creative",
+    name: "Creative Purple",
+    description: "Modern purple scheme for creative and tech companies",
+    primaryColor: "#8B5CF6",
+    secondaryColor: "#7C3AED",
+    accentColor: "#A78BFA"
+  },
+  {
+    id: "orange-energetic",
+    name: "Energetic Orange",
+    description: "Vibrant orange palette for dynamic and friendly brands",
+    primaryColor: "#F97316",
+    secondaryColor: "#EA580C",
+    accentColor: "#FB923C"
+  },
+  {
+    id: "grey-minimal",
+    name: "Minimal Grey",
+    description: "Sophisticated grey scheme for minimalist designs",
+    primaryColor: "#6B7280",
+    secondaryColor: "#4B5563",
+    accentColor: "#9CA3AF"
+  },
+  {
+    id: "red-bold",
+    name: "Bold Red",
+    description: "Strong red palette for impactful and energetic brands",
+    primaryColor: "#EF4444",
+    secondaryColor: "#DC2626",
+    accentColor: "#F87171"
+  }
+];
+
 export default function DesignStyleSelector({ 
   preferences, 
   onPreferencesUpdate, 
@@ -78,6 +139,14 @@ export default function DesignStyleSelector({
       selectedStyle: styleId
     });
     console.log('Design style selected:', styleId);
+  };
+
+  const selectColorTheme = (themeId: string) => {
+    onPreferencesUpdate({
+      ...preferences,
+      colorTheme: themeId
+    });
+    console.log('Color theme selected:', themeId);
   };
 
   const addInspirationLink = () => {
@@ -143,6 +212,59 @@ export default function DesignStyleSelector({
                         {characteristic}
                       </Badge>
                     ))}
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Color Theme Selection */}
+      <div>
+        <h3 className="font-semibold text-lg mb-4">Choose Your Color Theme</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {colorThemes.map((theme) => {
+            const isSelected = preferences.colorTheme === theme.id;
+            
+            return (
+              <Card
+                key={theme.id}
+                className={`p-6 cursor-pointer transition-all hover-elevate ${
+                  isSelected 
+                    ? "ring-2 ring-primary bg-primary/5" 
+                    : "hover:shadow-md"
+                }`}
+                onClick={() => selectColorTheme(theme.id)}
+                data-testid={`card-color-theme-${theme.id}`}
+              >
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-lg">{theme.name}</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {theme.description}
+                  </p>
+                  
+                  {/* Color Palette Preview */}
+                  <div className="flex gap-2">
+                    <div 
+                      className="w-8 h-8 rounded-md border-2 border-border flex-shrink-0" 
+                      style={{ backgroundColor: theme.primaryColor }}
+                      title="Primary Color"
+                    />
+                    <div 
+                      className="w-8 h-8 rounded-md border-2 border-border flex-shrink-0" 
+                      style={{ backgroundColor: theme.secondaryColor }}
+                      title="Secondary Color"
+                    />
+                    <div 
+                      className="w-8 h-8 rounded-md border-2 border-border flex-shrink-0" 
+                      style={{ backgroundColor: theme.accentColor }}
+                      title="Accent Color"
+                    />
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground">
+                    Primary • Secondary • Accent
                   </div>
                 </div>
               </Card>
