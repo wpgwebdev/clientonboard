@@ -414,7 +414,11 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const [pages, setPages] = useState<Page[]>(initialPages);
   const [designPreferences, setDesignPreferences] = useState<DesignPreferences>({
     selectedStyle: "",
-    colorTheme: "",
+    primaryColor: "",
+    secondaryColor: "",
+    accentColor: "",
+    backgroundColor: "",
+    textColor: "",
     inspirationLinks: [],
     additionalNotes: ""
   });
@@ -1795,22 +1799,17 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         );
 
       case 9:
-        // Extract colors from color theme, design notes, or defaults based on design style
-        const extractColorsFromNotes = (notes: string, colorTheme?: string): string[] => {
-          // First priority: Selected color theme
-          if (colorTheme) {
-            const themeColorMap: { [key: string]: string[] } = {
-              'blue-professional': ['#3B82F6', '#1E40AF'],
-              'green-nature': ['#10B981', '#059669'],
-              'purple-creative': ['#8B5CF6', '#7C3AED'],
-              'orange-energetic': ['#F97316', '#EA580C'],
-              'grey-minimal': ['#6B7280', '#4B5563'],
-              'red-bold': ['#EF4444', '#DC2626']
-            };
-            
-            if (themeColorMap[colorTheme]) {
-              return themeColorMap[colorTheme];
-            }
+        // Extract colors from individual color selections, design notes, or defaults based on design style
+        const extractColorsFromPreferences = (notes: string, preferences: DesignPreferences): string[] => {
+          // First priority: Individual color selections
+          const individualColors = [
+            preferences.primaryColor,
+            preferences.secondaryColor,
+            preferences.accentColor
+          ].filter((color): color is string => Boolean(color && color.trim() && color !== ""));
+          
+          if (individualColors.length > 0) {
+            return individualColors.slice(0, 3); // Return up to 3 colors
           }
           const colorKeywords = {
             'forest green': '#228B22',
@@ -1870,7 +1869,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           logoFile: logoFile || undefined,
           logoDecision: logoDecision || undefined,
           selectedLogo: selectedLogo || undefined,
-          colors: extractColorsFromNotes(designPreferences.additionalNotes || '', designPreferences.colorTheme),
+          colors: extractColorsFromPreferences(designPreferences.additionalNotes || '', designPreferences),
           fonts: ['Inter', 'Open Sans'], // Mock fonts
           siteType: selectedSiteType,
           pages: pages.map(p => ({ name: p.name, path: p.path })),

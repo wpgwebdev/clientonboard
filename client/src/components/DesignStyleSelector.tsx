@@ -16,7 +16,11 @@ export interface DesignStyle {
 
 export interface DesignPreferences {
   selectedStyle?: string;
-  colorTheme?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
   inspirationLinks: string[];
   additionalNotes: string;
 }
@@ -66,65 +70,6 @@ const designStyles: DesignStyle[] = [
   }
 ];
 
-export interface ColorTheme {
-  id: string;
-  name: string;
-  description: string;
-  primaryColor: string;
-  secondaryColor: string;
-  accentColor: string;
-}
-
-const colorThemes: ColorTheme[] = [
-  {
-    id: "blue-professional",
-    name: "Professional Blue",
-    description: "Classic blue scheme for business and corporate sites",
-    primaryColor: "#3B82F6",
-    secondaryColor: "#1E40AF", 
-    accentColor: "#60A5FA"
-  },
-  {
-    id: "green-nature",
-    name: "Natural Green",
-    description: "Fresh green palette for eco-friendly and health brands",
-    primaryColor: "#10B981",
-    secondaryColor: "#059669",
-    accentColor: "#34D399"
-  },
-  {
-    id: "purple-creative",
-    name: "Creative Purple",
-    description: "Modern purple scheme for creative and tech companies",
-    primaryColor: "#8B5CF6",
-    secondaryColor: "#7C3AED",
-    accentColor: "#A78BFA"
-  },
-  {
-    id: "orange-energetic",
-    name: "Energetic Orange",
-    description: "Vibrant orange palette for dynamic and friendly brands",
-    primaryColor: "#F97316",
-    secondaryColor: "#EA580C",
-    accentColor: "#FB923C"
-  },
-  {
-    id: "grey-minimal",
-    name: "Minimal Grey",
-    description: "Sophisticated grey scheme for minimalist designs",
-    primaryColor: "#6B7280",
-    secondaryColor: "#4B5563",
-    accentColor: "#9CA3AF"
-  },
-  {
-    id: "red-bold",
-    name: "Bold Red",
-    description: "Strong red palette for impactful and energetic brands",
-    primaryColor: "#EF4444",
-    secondaryColor: "#DC2626",
-    accentColor: "#F87171"
-  }
-];
 
 export default function DesignStyleSelector({ 
   preferences, 
@@ -141,12 +86,12 @@ export default function DesignStyleSelector({
     console.log('Design style selected:', styleId);
   };
 
-  const selectColorTheme = (themeId: string) => {
+  const updateColor = (colorType: keyof DesignPreferences, color: string) => {
     onPreferencesUpdate({
       ...preferences,
-      colorTheme: themeId
+      [colorType]: color
     });
-    console.log('Color theme selected:', themeId);
+    console.log(`${colorType} updated:`, color);
   };
 
   const addInspirationLink = () => {
@@ -220,56 +165,170 @@ export default function DesignStyleSelector({
         </div>
       </div>
 
-      {/* Color Theme Selection */}
+      {/* Color Selection */}
       <div>
-        <h3 className="font-semibold text-lg mb-4">Choose Your Color Theme</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {colorThemes.map((theme) => {
-            const isSelected = preferences.colorTheme === theme.id;
-            
-            return (
-              <Card
-                key={theme.id}
-                className={`p-6 cursor-pointer transition-all hover-elevate ${
-                  isSelected 
-                    ? "ring-2 ring-primary bg-primary/5" 
-                    : "hover:shadow-md"
-                }`}
-                onClick={() => selectColorTheme(theme.id)}
-                data-testid={`card-color-theme-${theme.id}`}
-              >
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-lg">{theme.name}</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {theme.description}
-                  </p>
-                  
-                  {/* Color Palette Preview */}
-                  <div className="flex gap-2">
-                    <div 
-                      className="w-8 h-8 rounded-md border-2 border-border flex-shrink-0" 
-                      style={{ backgroundColor: theme.primaryColor }}
-                      title="Primary Color"
-                    />
-                    <div 
-                      className="w-8 h-8 rounded-md border-2 border-border flex-shrink-0" 
-                      style={{ backgroundColor: theme.secondaryColor }}
-                      title="Secondary Color"
-                    />
-                    <div 
-                      className="w-8 h-8 rounded-md border-2 border-border flex-shrink-0" 
-                      style={{ backgroundColor: theme.accentColor }}
-                      title="Accent Color"
-                    />
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground">
-                    Primary • Secondary • Accent
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
+        <h3 className="font-semibold text-lg mb-4">Choose Your Colors</h3>
+        <p className="text-sm text-muted-foreground mb-6">
+          Select custom colors for your website's color palette
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="primary-color" className="text-sm font-medium">Primary Color</Label>
+            <div className="flex items-center space-x-3">
+              <input
+                id="primary-color"
+                type="color"
+                value={preferences.primaryColor || "#3B82F6"}
+                onChange={(e) => updateColor('primaryColor', e.target.value)}
+                className="w-12 h-12 rounded-md border-2 border-border cursor-pointer"
+                data-testid="input-primary-color"
+              />
+              <Input
+                value={preferences.primaryColor || "#3B82F6"}
+                onChange={(e) => updateColor('primaryColor', e.target.value)}
+                placeholder="#3B82F6"
+                className="flex-1 font-mono text-sm"
+                data-testid="input-primary-color-text"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="secondary-color" className="text-sm font-medium">Secondary Color</Label>
+            <div className="flex items-center space-x-3">
+              <input
+                id="secondary-color"
+                type="color"
+                value={preferences.secondaryColor || "#1E40AF"}
+                onChange={(e) => updateColor('secondaryColor', e.target.value)}
+                className="w-12 h-12 rounded-md border-2 border-border cursor-pointer"
+                data-testid="input-secondary-color"
+              />
+              <Input
+                value={preferences.secondaryColor || "#1E40AF"}
+                onChange={(e) => updateColor('secondaryColor', e.target.value)}
+                placeholder="#1E40AF"
+                className="flex-1 font-mono text-sm"
+                data-testid="input-secondary-color-text"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="accent-color" className="text-sm font-medium">Accent Color</Label>
+            <div className="flex items-center space-x-3">
+              <input
+                id="accent-color"
+                type="color"
+                value={preferences.accentColor || "#60A5FA"}
+                onChange={(e) => updateColor('accentColor', e.target.value)}
+                className="w-12 h-12 rounded-md border-2 border-border cursor-pointer"
+                data-testid="input-accent-color"
+              />
+              <Input
+                value={preferences.accentColor || "#60A5FA"}
+                onChange={(e) => updateColor('accentColor', e.target.value)}
+                placeholder="#60A5FA"
+                className="flex-1 font-mono text-sm"
+                data-testid="input-accent-color-text"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="background-color" className="text-sm font-medium">Background Color</Label>
+            <div className="flex items-center space-x-3">
+              <input
+                id="background-color"
+                type="color"
+                value={preferences.backgroundColor || "#FFFFFF"}
+                onChange={(e) => updateColor('backgroundColor', e.target.value)}
+                className="w-12 h-12 rounded-md border-2 border-border cursor-pointer"
+                data-testid="input-background-color"
+              />
+              <Input
+                value={preferences.backgroundColor || "#FFFFFF"}
+                onChange={(e) => updateColor('backgroundColor', e.target.value)}
+                placeholder="#FFFFFF"
+                className="flex-1 font-mono text-sm"
+                data-testid="input-background-color-text"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="text-color" className="text-sm font-medium">Text Color</Label>
+            <div className="flex items-center space-x-3">
+              <input
+                id="text-color"
+                type="color"
+                value={preferences.textColor || "#1F2937"}
+                onChange={(e) => updateColor('textColor', e.target.value)}
+                className="w-12 h-12 rounded-md border-2 border-border cursor-pointer"
+                data-testid="input-text-color"
+              />
+              <Input
+                value={preferences.textColor || "#1F2937"}
+                onChange={(e) => updateColor('textColor', e.target.value)}
+                placeholder="#1F2937"
+                className="flex-1 font-mono text-sm"
+                data-testid="input-text-color-text"
+              />
+            </div>
+          </div>
+        </div>
+        
+        {/* Color Preview */}
+        <div className="mt-6">
+          <Label className="text-sm font-medium mb-3 block">Color Preview</Label>
+          <div className="flex gap-3 p-4 bg-muted/50 rounded-lg">
+            <div 
+              className="w-16 h-16 rounded-md border-2 border-border flex items-center justify-center text-xs font-medium"
+              style={{ 
+                backgroundColor: preferences.primaryColor || "#3B82F6",
+                color: preferences.textColor || "#1F2937"
+              }}
+            >
+              Primary
+            </div>
+            <div 
+              className="w-16 h-16 rounded-md border-2 border-border flex items-center justify-center text-xs font-medium"
+              style={{ 
+                backgroundColor: preferences.secondaryColor || "#1E40AF",
+                color: preferences.textColor || "#1F2937"
+              }}
+            >
+              Secondary
+            </div>
+            <div 
+              className="w-16 h-16 rounded-md border-2 border-border flex items-center justify-center text-xs font-medium"
+              style={{ 
+                backgroundColor: preferences.accentColor || "#60A5FA",
+                color: preferences.textColor || "#1F2937"
+              }}
+            >
+              Accent
+            </div>
+            <div 
+              className="w-16 h-16 rounded-md border-2 border-border flex items-center justify-center text-xs font-medium"
+              style={{ 
+                backgroundColor: preferences.backgroundColor || "#FFFFFF",
+                color: preferences.textColor || "#1F2937"
+              }}
+            >
+              Background
+            </div>
+            <div 
+              className="w-16 h-16 rounded-md border-2 border-border flex items-center justify-center text-xs font-medium"
+              style={{ 
+                backgroundColor: preferences.textColor || "#1F2937",
+                color: preferences.backgroundColor || "#FFFFFF"
+              }}
+            >
+              Text
+            </div>
+          </div>
         </div>
       </div>
 

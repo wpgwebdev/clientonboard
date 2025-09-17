@@ -173,7 +173,11 @@ export const projectSubmissionSchema = z.object({
   imageRequirements: imageRequirementsSchema,
   designPreferences: z.object({
     selectedStyle: z.string(),
-    colorTheme: z.string().optional(),
+    primaryColor: z.string().optional(),
+    secondaryColor: z.string().optional(),
+    accentColor: z.string().optional(),
+    backgroundColor: z.string().optional(),
+    textColor: z.string().optional(),
     inspirationLinks: z.array(z.string()),
     additionalNotes: z.string()
   }),
