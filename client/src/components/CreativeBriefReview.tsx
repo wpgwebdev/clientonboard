@@ -24,6 +24,11 @@ export interface CreativeBriefData {
     prompt: string;
   };
   colors: string[];
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
   fonts: string[];
   siteType: string;
   pages: { name: string; path: string }[];
@@ -174,19 +179,71 @@ export default function CreativeBriefReview({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {briefData.colors.length > 0 && (
+              {/* Color Scheme */}
+              {(briefData.primaryColor || briefData.secondaryColor || briefData.accentColor || briefData.backgroundColor || briefData.textColor) && (
                 <div>
-                  <p className="text-sm font-medium mb-2">Colors:</p>
-                  <div className="flex gap-2">
-                    {briefData.colors.map((color, index) => (
-                      <div key={index} className="flex items-center gap-2">
+                  <p className="text-sm font-medium mb-3">Selected Color Scheme:</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {briefData.primaryColor && (
+                      <div className="flex items-center gap-3">
                         <div 
-                          className="w-6 h-6 rounded-full border-2 border-border" 
-                          style={{ backgroundColor: color }}
+                          className="w-8 h-8 rounded-md border-2 border-border flex-shrink-0" 
+                          style={{ backgroundColor: briefData.primaryColor }}
                         />
-                        <span className="text-sm">{color}</span>
+                        <div>
+                          <span className="text-sm font-medium">Primary</span>
+                          <p className="text-xs text-muted-foreground">{briefData.primaryColor}</p>
+                        </div>
                       </div>
-                    ))}
+                    )}
+                    {briefData.secondaryColor && (
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-8 h-8 rounded-md border-2 border-border flex-shrink-0" 
+                          style={{ backgroundColor: briefData.secondaryColor }}
+                        />
+                        <div>
+                          <span className="text-sm font-medium">Secondary</span>
+                          <p className="text-xs text-muted-foreground">{briefData.secondaryColor}</p>
+                        </div>
+                      </div>
+                    )}
+                    {briefData.accentColor && (
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-8 h-8 rounded-md border-2 border-border flex-shrink-0" 
+                          style={{ backgroundColor: briefData.accentColor }}
+                        />
+                        <div>
+                          <span className="text-sm font-medium">Accent</span>
+                          <p className="text-xs text-muted-foreground">{briefData.accentColor}</p>
+                        </div>
+                      </div>
+                    )}
+                    {briefData.backgroundColor && (
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-8 h-8 rounded-md border-2 border-border flex-shrink-0" 
+                          style={{ backgroundColor: briefData.backgroundColor }}
+                        />
+                        <div>
+                          <span className="text-sm font-medium">Background</span>
+                          <p className="text-xs text-muted-foreground">{briefData.backgroundColor}</p>
+                        </div>
+                      </div>
+                    )}
+                    {briefData.textColor && (
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-8 h-8 rounded-md border-2 border-border flex-shrink-0" 
+                          style={{ backgroundColor: briefData.textColor }}
+                        />
+                        <div>
+                          <span className="text-sm font-medium">Text</span>
+                          <p className="text-xs text-muted-foreground">{briefData.textColor}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

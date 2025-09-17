@@ -414,11 +414,11 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const [pages, setPages] = useState<Page[]>(initialPages);
   const [designPreferences, setDesignPreferences] = useState<DesignPreferences>({
     selectedStyle: "",
-    primaryColor: "",
-    secondaryColor: "",
-    accentColor: "",
-    backgroundColor: "",
-    textColor: "",
+    primaryColor: "#3B82F6",
+    secondaryColor: "#1E40AF",
+    accentColor: "#60A5FA",
+    backgroundColor: "#FFFFFF",
+    textColor: "#1F2937",
     inspirationLinks: [],
     additionalNotes: ""
   });
@@ -1870,6 +1870,11 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           logoDecision: logoDecision || undefined,
           selectedLogo: selectedLogo || undefined,
           colors: extractColorsFromPreferences(designPreferences.additionalNotes || '', designPreferences),
+          primaryColor: designPreferences.primaryColor,
+          secondaryColor: designPreferences.secondaryColor,
+          accentColor: designPreferences.accentColor,
+          backgroundColor: designPreferences.backgroundColor,
+          textColor: designPreferences.textColor,
           fonts: ['Inter', 'Open Sans'], // Mock fonts
           siteType: selectedSiteType,
           pages: pages.map(p => ({ name: p.name, path: p.path })),
