@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -23,6 +23,8 @@ function Router() {
   const [userRole, setUserRole] = useState<UserRole>('guest');
   const { toast } = useToast();
   
+  const setCurrentViewWrapper = setCurrentView;
+  
   // Mock projects data
   const [projects] = useState<Project[]>([
     {
@@ -46,19 +48,19 @@ function Router() {
   ]);
 
   const handleGetStarted = () => {
-    setCurrentView('onboarding');
+    setCurrentViewWrapper('onboarding');
     setUserRole('client');
     console.log('Starting onboarding process...');
   };
 
   const handleLogin = () => {
-    setCurrentView('dashboard');
+    setCurrentViewWrapper('dashboard');
     setUserRole('client');
     console.log('Logging in as client...');
   };
 
   const handleCreateProject = () => {
-    setCurrentView('onboarding');
+    setCurrentViewWrapper('onboarding');
     console.log('Creating new project...');
   };
 
@@ -67,7 +69,7 @@ function Router() {
   };
 
   const handleEditProject = (id: string) => {
-    setCurrentView('onboarding');
+    setCurrentViewWrapper('onboarding');
     console.log('Editing project:', id);
   };
 
@@ -93,7 +95,7 @@ function Router() {
               <div className="max-w-6xl mx-auto flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <button 
-                    onClick={() => setCurrentView('dashboard')}
+                    onClick={() => setCurrentViewWrapper('dashboard')}
                     className="text-sm text-muted-foreground hover:text-foreground"
                     data-testid="button-back-to-dashboard"
                   >
@@ -105,7 +107,7 @@ function Router() {
               </div>
             </header>
             <div className="p-6">
-              <OnboardingWizard />
+              <OnboardingWizard key="stable-onboarding-wizard" />
             </div>
           </div>
         );
@@ -117,7 +119,7 @@ function Router() {
               <div className="max-w-7xl mx-auto flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <button 
-                    onClick={() => setCurrentView('landing')}
+                    onClick={() => setCurrentViewWrapper('landing')}
                     className="text-sm text-muted-foreground hover:text-foreground"
                     data-testid="button-back-to-landing"
                   >
@@ -125,7 +127,7 @@ function Router() {
                   </button>
                   <h1 className="text-lg font-semibold">WebStudio Pro</h1>
                   <button
-                    onClick={() => setCurrentView('features')}
+                    onClick={() => setCurrentViewWrapper('features')}
                     className="text-xs bg-secondary text-secondary-foreground px-3 py-1.5 rounded hover-elevate"
                     data-testid="button-go-to-features"
                   >
@@ -173,7 +175,7 @@ function Router() {
               <div className="max-w-7xl mx-auto flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <button 
-                    onClick={() => setCurrentView('dashboard')}
+                    onClick={() => setCurrentViewWrapper('dashboard')}
                     className="text-sm text-muted-foreground hover:text-foreground"
                     data-testid="button-back-to-dashboard-from-features"
                   >

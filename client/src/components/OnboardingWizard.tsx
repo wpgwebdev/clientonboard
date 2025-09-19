@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -98,20 +98,35 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
 
   const generateLogosMutation = useMutation({
     mutationFn: async (data: LogoPreferences) => {
-      const response = await apiRequest('POST', '/api/logo/generate', {
-        businessName,
-        description: businessDescription,
-        preferences: data
+      console.log('[DEBUG] Starting logo generation...');
+      
+      // TEMP FIX: Use mock data instead of real API call to test if it's the long API call causing issues
+      return new Promise<{ logos: GeneratedLogo[]; prompt: string }>((resolve) => {
+        setTimeout(() => {
+          console.log('[DEBUG] Mock logo generation completed');
+          const mockLogos: GeneratedLogo[] = [
+            {
+              id: 'mock-logo-1',
+              dataUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgMjBoNjB2NjBIMjB6IiBmaWxsPSIjNjM2NmYxIi8+PC9zdmc+',
+              prompt: 'Mock logo prompt'
+            },
+            {
+              id: 'mock-logo-2', 
+              dataUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzEwYjk4MSIvPjwvc3ZnPg==',
+              prompt: 'Mock logo prompt'
+            },
+            {
+              id: 'mock-logo-3',
+              dataUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cG9seWdvbiBwb2ludHM9IjUwLDEwIDkwLDkwIDEwLDkwIiBmaWxsPSIjZmI3MTg1Ii8+PC9zdmc+',
+              prompt: 'Mock logo prompt'
+            }
+          ];
+          resolve({ logos: mockLogos, prompt: 'Mock generation prompt' });
+        }, 2000); // Short 2 second delay instead of 60 seconds
       });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to generate logos');
-      }
-      
-      return response.json() as Promise<{ logos: GeneratedLogo[]; prompt: string }>;
     },
     onSuccess: (data) => {
+      console.log('[DEBUG] Logo generation onSuccess called');
       onLogoGenerated(data.logos);
       toast({
         title: "Logos Generated!",
@@ -119,6 +134,7 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
       });
     },
     onError: (error: Error) => {
+      console.log('[DEBUG] Logo generation onError called', error);
       toast({
         title: "Generation Failed",
         description: error.message,
@@ -377,6 +393,19 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  
+  // Debug logging for component lifecycle
+  useEffect(() => {
+    console.log('[DEBUG OnboardingWizard] Component mounted');
+    return () => {
+      console.log('[DEBUG OnboardingWizard] Component unmounted');
+    };
+  }, []);
+  
+  // Debug logging for currentStep changes
+  useEffect(() => {
+    console.log(`[DEBUG OnboardingWizard] currentStep changed to: ${currentStep}`);
+  }, [currentStep]);
   
   // Form data state
   const [businessName, setBusinessName] = useState("");
