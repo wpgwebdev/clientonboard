@@ -3,6 +3,7 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/hooks/use-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
@@ -10,6 +11,7 @@ import NotFound from "@/pages/not-found";
 import LandingPage from "@/components/LandingPage";
 import OnboardingWizard from "@/components/OnboardingWizard";
 import Dashboard from "@/components/Dashboard";
+import FeatureSelection from "@/components/FeatureSelection";
 import ThemeToggle from "@/components/ThemeToggle";
 import type { Project } from "@/components/Dashboard";
 
@@ -17,8 +19,9 @@ import type { Project } from "@/components/Dashboard";
 type UserRole = 'guest' | 'client' | 'admin';
 
 function Router() {
-  const [currentView, setCurrentView] = useState<'landing' | 'onboarding' | 'dashboard'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'onboarding' | 'dashboard' | 'features'>('landing');
   const [userRole, setUserRole] = useState<UserRole>('guest');
+  const { toast } = useToast();
   
   // Mock projects data
   const [projects] = useState<Project[]>([
@@ -121,6 +124,13 @@ function Router() {
                     ← Back to Landing
                   </button>
                   <h1 className="text-lg font-semibold">WebStudio Pro</h1>
+                  <button
+                    onClick={() => setCurrentView('features')}
+                    className="text-xs bg-secondary text-secondary-foreground px-3 py-1.5 rounded hover-elevate"
+                    data-testid="button-go-to-features"
+                  >
+                    Feature Selection
+                  </button>
                   {userRole === 'admin' && (
                     <button
                       onClick={() => setUserRole('client')}
@@ -151,6 +161,38 @@ function Router() {
                 onViewProject={handleViewProject}
                 onEditProject={handleEditProject}
                 onExportProject={handleExportProject}
+              />
+            </div>
+          </div>
+        );
+      
+      case 'features':
+        return (
+          <div className="min-h-screen bg-background">
+            <header className="border-b p-4">
+              <div className="max-w-7xl mx-auto flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <button 
+                    onClick={() => setCurrentView('dashboard')}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                    data-testid="button-back-to-dashboard-from-features"
+                  >
+                    ← Back to Dashboard
+                  </button>
+                  <h1 className="text-lg font-semibold">WebStudio Pro - Feature Selection</h1>
+                </div>
+                <ThemeToggle />
+              </div>
+            </header>
+            <div className="max-w-4xl mx-auto p-6">
+              <FeatureSelection
+                userId="mock-user-id"
+                onSaved={() => {
+                  toast({
+                    title: "Features Saved",
+                    description: "Your feature selection has been saved successfully."
+                  });
+                }}
               />
             </div>
           </div>

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
-import { logoGenerationRequestSchema, type GeneratedLogo, contentGenerationRequestSchema, pageRegenerationRequestSchema, projectSubmissionSchema, type ProjectSubmission } from "../shared/schema";
+import { logoGenerationRequestSchema, type GeneratedLogo, contentGenerationRequestSchema, pageRegenerationRequestSchema, projectSubmissionSchema, type ProjectSubmission, featureSelectionSchema, insertFeatureSelectionSchema } from "../shared/schema";
 
 // OpenAI integration - the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -611,6 +611,123 @@ Generate complete, ready-to-use web copy with proper structure, headings, and fu
     
     return guidance[pageName] || `Create compelling content for the ${pageName} page that aligns with the overall ${siteType} website goals and helps convert visitors into customers.`;
   }
+
+  // Feature Selection endpoints
+  
+  // Create new feature selection
+  app.post("/api/feature-selections", async (req, res) => {
+    try {
+      // Validate request body
+      const validationResult = insertFeatureSelectionSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid request data", 
+          details: validationResult.error.errors 
+        });
+      }
+      
+      const featureSelection = await storage.createFeatureSelection(validationResult.data);
+      
+      res.json(featureSelection);
+      
+    } catch (error: any) {
+      console.error("Error creating feature selection:", error);
+      res.status(500).json({ 
+        error: "Failed to save feature selection", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Get feature selection by ID
+  app.get("/api/feature-selections/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const featureSelection = await storage.getFeatureSelection(id);
+      
+      if (!featureSelection) {
+        return res.status(404).json({ error: "Feature selection not found" });
+      }
+      
+      res.json(featureSelection);
+      
+    } catch (error: any) {
+      console.error("Error fetching feature selection:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch feature selection", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Get feature selection by user ID
+  app.get("/api/feature-selections/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const featureSelection = await storage.getFeatureSelectionByUserId(userId);
+      
+      if (!featureSelection) {
+        return res.status(404).json({ error: "No feature selection found for this user" });
+      }
+      
+      res.json(featureSelection);
+      
+    } catch (error: any) {
+      console.error("Error fetching feature selection by user:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch feature selection", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Update existing feature selection
+  app.put("/api/feature-selections/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Validate request body
+      const validationResult = featureSelectionSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid request data", 
+          details: validationResult.error.errors 
+        });
+      }
+      
+      const updatedFeatureSelection = await storage.updateFeatureSelection(id, validationResult.data);
+      
+      if (!updatedFeatureSelection) {
+        return res.status(404).json({ error: "Feature selection not found" });
+      }
+      
+      res.json(updatedFeatureSelection);
+      
+    } catch (error: any) {
+      console.error("Error updating feature selection:", error);
+      res.status(500).json({ 
+        error: "Failed to update feature selection", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // List all feature selections (admin use)
+  app.get("/api/feature-selections", async (req, res) => {
+    try {
+      const featureSelections = await storage.listFeatureSelections();
+      res.json(featureSelections);
+      
+    } catch (error: any) {
+      console.error("Error listing feature selections:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch feature selections", 
+        message: error.message 
+      });
+    }
+  });
 
   // Project submission endpoint
   app.post("/api/project/submit", async (req, res) => {

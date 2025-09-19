@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, json, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -185,3 +185,110 @@ export const projectSubmissionSchema = z.object({
 });
 
 export type ProjectSubmission = z.infer<typeof projectSubmissionSchema>;
+
+// Feature Selection Schemas
+export const featureSelections = pgTable("feature_selections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  projectId: varchar("project_id"),
+  selectedFeatures: json("selected_features").$type<string[]>().notNull(),
+  priority: json("priority").$type<{ [key: string]: 'low' | 'medium' | 'high' }>(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const featureSelectionSchema = z.object({
+  selectedFeatures: z.array(z.string()),
+  priority: z.record(z.enum(['low', 'medium', 'high'])).optional(),
+  notes: z.string().optional()
+});
+
+export const insertFeatureSelectionSchema = createInsertSchema(featureSelections, {
+  selectedFeatures: z.array(z.string()),
+  priority: z.record(z.enum(['low', 'medium', 'high'])).optional()
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+// Feature categories and features definition
+export const websiteFeatures = {
+  "Core Website Features": [
+    "Contact Form",
+    "Contact Form with Conditional Logic", 
+    "Newsletter Signup",
+    "Blog / News Section",
+    "FAQ Page / Accordion Sections",
+    "Search Functionality"
+  ],
+  "User Accounts & Membership": [
+    "Registration & Login",
+    "User Profiles",
+    "Role-Based Access (admin, member, guest)",
+    "Membership / Subscription System",
+    "Customer Dashboards"
+  ],
+  "E-Commerce": [
+    "Online Store (Shopify / WooCommerce)",
+    "Product Catalog",
+    "Shopping Cart & Checkout",
+    "Digital Downloads",
+    "Inventory Management",
+    "Subscription Products", 
+    "Multi-Currency Support",
+    "Discount Codes / Coupons"
+  ],
+  "Engagement & Interactivity": [
+    "Animations & Motion Effects",
+    "Pop-ups / Modals (newsletter, promos)",
+    "Live Chat Integration (Intercom, Drift, etc.)",
+    "Polls & Surveys",
+    "Appointment Booking / Scheduling",
+    "Event Calendar & Ticketing",
+    "Social Media Feeds / Sharing"
+  ],
+  "Integrations": [
+    "CRM Integration (HubSpot, Salesforce, Zoho, etc.)",
+    "Marketing Automation (Klaviyo, Mailchimp, ActiveCampaign)",
+    "Payment Gateways (Stripe, PayPal, Square, etc.)",
+    "API Integrations (custom or third-party tools)",
+    "Zapier / Make (Integromat) Automations"
+  ],
+  "Content & Media": [
+    "Photo Galleries / Sliders",
+    "Video Backgrounds / Embeds",
+    "Podcast / Audio Player",
+    "Resource Library (PDFs, Whitepapers)",
+    "Download Center"
+  ],
+  "Advanced Features": [
+    "Multilingual / Translation Support",
+    "SEO Tools (meta tags, sitemap, schema)",
+    "Analytics Integration (GA4, Hotjar, etc.)",
+    "Security Features (SSL, Captcha, 2FA)",
+    "Custom Forms & Workflows",
+    "Chatbots (AI-powered or scripted)"
+  ],
+  "Design & Branding": [
+    "Theme Customization",
+    "Color & Typography Options",
+    "Dark Mode Toggle",
+    "Icon Libraries & Illustrations",
+    "Custom Graphics / SVG Animations"
+  ],
+  "Enterprise / Custom": [
+    "Learning Management System (LMS)",
+    "Custom Web Applications / Portals",
+    "Document Management System",
+    "API-Driven Dashboards",
+    "Integrations with ERP / Accounting Tools"
+  ]
+} as const;
+
+export type FeatureSelection = z.infer<typeof featureSelectionSchema>;
+export type InsertFeatureSelection = z.infer<typeof insertFeatureSelectionSchema>;
+export type FeatureSelectionRow = typeof featureSelections.$inferSelect;
+export type WebsiteFeatureCategory = keyof typeof websiteFeatures;
+export type WebsiteFeature = typeof websiteFeatures[WebsiteFeatureCategory][number];
