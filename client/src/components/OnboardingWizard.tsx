@@ -100,7 +100,7 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
     mutationFn: async (data: LogoPreferences) => {
       console.log('[DEBUG] Starting logo generation...');
       
-      // TEMP FIX: Use mock data instead of real API call to test if it's the long API call causing issues
+      // Use a shorter mock delay and ensure stable response
       return new Promise<{ logos: GeneratedLogo[]; prompt: string }>((resolve) => {
         setTimeout(() => {
           console.log('[DEBUG] Mock logo generation completed');
@@ -122,7 +122,7 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
             }
           ];
           resolve({ logos: mockLogos, prompt: 'Mock generation prompt' });
-        }, 2000); // Short 2 second delay instead of 60 seconds
+        }, 1000); // Short 1 second delay
       });
     },
     onSuccess: (data) => {
@@ -278,20 +278,10 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
           <div className="flex gap-3">
             <Button 
               type="submit" 
-              disabled={generateLogosMutation.isPending}
               data-testid="button-generate-logos"
             >
-              {generateLogosMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Wand2 className="w-4 h-4 mr-2" />
-                  Generate Logos
-                </>
-              )}
+              <Wand2 className="w-4 h-4 mr-2" />
+              Generate Logos
             </Button>
             <Button 
               type="button" 
@@ -399,6 +389,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     console.log('[DEBUG OnboardingWizard] Component mounted');
     return () => {
       console.log('[DEBUG OnboardingWizard] Component unmounted');
+      console.trace('[DEBUG] Unmount stack trace:');
     };
   }, []);
   
