@@ -3,7 +3,6 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { useToast } from "@/hooks/use-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
@@ -21,9 +20,11 @@ type UserRole = 'guest' | 'client' | 'admin';
 function Router() {
   const [currentView, setCurrentView] = useState<'landing' | 'onboarding' | 'dashboard' | 'features'>('landing');
   const [userRole, setUserRole] = useState<UserRole>('guest');
-  const { toast } = useToast();
   
-  const setCurrentViewWrapper = setCurrentView;
+  const setCurrentViewWrapper = (view: 'landing' | 'onboarding' | 'dashboard' | 'features') => {
+    console.log('[DEBUG] setCurrentView called:', currentView, '->', view);
+    setCurrentView(view);
+  };
   
   // Mock projects data
   const [projects] = useState<Project[]>([
@@ -190,10 +191,7 @@ function Router() {
               <FeatureSelection
                 userId="mock-user-id"
                 onSaved={() => {
-                  toast({
-                    title: "Features Saved",
-                    description: "Your feature selection has been saved successfully."
-                  });
+                  console.log('Features saved successfully');
                 }}
               />
             </div>
