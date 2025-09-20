@@ -98,32 +98,23 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
 
   const generateLogosMutation = useMutation({
     mutationFn: async (data: LogoPreferences) => {
-      console.log('[DEBUG] Starting logo generation...');
+      console.log('[DEBUG] Starting real logo generation with DALL-E...');
       
-      // Use a shorter mock delay and ensure stable response
-      return new Promise<{ logos: GeneratedLogo[]; prompt: string }>((resolve) => {
-        setTimeout(() => {
-          console.log('[DEBUG] Mock logo generation completed');
-          const mockLogos: GeneratedLogo[] = [
-            {
-              id: 'mock-logo-1',
-              dataUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgMjBoNjB2NjBIMjB6IiBmaWxsPSIjNjM2NmYxIi8+PC9zdmc+',
-              prompt: 'Mock logo prompt'
-            },
-            {
-              id: 'mock-logo-2', 
-              dataUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzEwYjk4MSIvPjwvc3ZnPg==',
-              prompt: 'Mock logo prompt'
-            },
-            {
-              id: 'mock-logo-3',
-              dataUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cG9seWdvbiBwb2ludHM9IjUwLDEwIDkwLDkwIDEwLDkwIiBmaWxsPSIjZmI3MTg1Ii8+PC9zdmc+',
-              prompt: 'Mock logo prompt'
-            }
-          ];
-          resolve({ logos: mockLogos, prompt: 'Mock generation prompt' });
-        }, 1000); // Short 1 second delay
-      });
+      // Call the real API endpoint for logo generation
+      const requestData = {
+        businessName: businessName || undefined,
+        description: businessDescription,
+        preferences: data
+      };
+      
+      console.log('[DEBUG] Sending logo generation request:', requestData);
+      
+      const response = await apiRequest('POST', '/api/logo/generate', requestData);
+      
+      const result = await response.json();
+      console.log('[DEBUG] Logo generation completed successfully');
+      
+      return result;
     },
     onSuccess: (data) => {
       console.log('[DEBUG] Logo generation onSuccess called');
