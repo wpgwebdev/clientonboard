@@ -473,7 +473,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                      (logoPath === 'generate' && logoPreferences.types.length > 0 && logoPreferences.styles.length > 0);
       case 4: return selectedSiteType !== "";
       case 5: return pages.length >= 2;
-      case 6: return true; // Copy step - assume AI generated
+      case 6: return generatedContent.length > 0; // Copy step - require content generation
       case 7: return true; // Media step - optional
       case 8: return designPreferences.selectedStyle !== "";
       case 9: return true; // Review step
@@ -1460,6 +1460,11 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                     </>
                   )}
                 </Button>
+                {generatedContent.length === 0 && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Generate content to continue to the next step
+                  </p>
+                )}
               </div>
               
               {/* Enhanced Content Editor Display */}
