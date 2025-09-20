@@ -80,9 +80,10 @@ interface LogoGenerationFormProps {
   generatedLogos: GeneratedLogo[];
   selectedLogo: GeneratedLogo | null;
   onLogoSelect: (logo: GeneratedLogo, decision: 'final' | 'direction') => void;
+  onPreferencesChange: (preferences: LogoPreferences) => void;
 }
 
-function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated, onCancel, generatedLogos, selectedLogo, onLogoSelect }: LogoGenerationFormProps) {
+function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated, onCancel, generatedLogos, selectedLogo, onLogoSelect, onPreferencesChange }: LogoGenerationFormProps) {
   const { toast } = useToast();
   
   const form = useForm<LogoPreferences>({
@@ -96,30 +97,26 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
     }
   });
 
+  // Watch form values and update parent component
+  const formValues = form.watch();
+  useEffect(() => {
+    onPreferencesChange(formValues);
+  }, [formValues, onPreferencesChange]);
+
   const generateLogosMutation = useMutation({
     mutationFn: async (data: LogoPreferences) => {
-      console.log('[DEBUG] Starting real logo generation with DALL-E...');
+      console.log('Starting logo generation with AI...');
       
-      // Call the real API endpoint for logo generation
-      const requestData = {
+      const response = await apiRequest('POST', '/api/logo/generate', {
         businessName: businessName || undefined,
         description: businessDescription,
         preferences: data
-      };
-      
-      console.log('[DEBUG] Sending logo generation request:', requestData);
-      
-      const response = await apiRequest('POST', '/api/logo/generate', requestData);
+      });
       
       const result = await response.json();
-      console.log('[DEBUG] Logo generation completed successfully');
-      console.log('[DEBUG] API response data:', result);
-      console.log('[DEBUG] Number of logos in response:', result.logos?.length);
-      
       return result;
     },
     onSuccess: (data) => {
-      console.log('[DEBUG] Logo generation onSuccess called');
       onLogoGenerated(data.logos);
       toast({
         title: "Logos Generated!",
@@ -127,7 +124,7 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
       });
     },
     onError: (error: Error) => {
-      console.log('[DEBUG] Logo generation onError called', error);
+      console.error('Logo generation failed:', error);
       toast({
         title: "Generation Failed",
         description: error.message,
@@ -473,7 +470,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                      businessName.trim() !== "" && 
                      hasBusinessName !== null;
       case 3: return (logoPath === 'upload' && logoFile !== null) || 
-                     (logoPath === 'generate' && selectedLogo !== null && logoDecision !== null);
+                     (logoPath === 'generate' && logoPreferences.types.length > 0 && logoPreferences.styles.length > 0);
       case 4: return selectedSiteType !== "";
       case 5: return pages.length >= 2;
       case 6: return true; // Copy step - assume AI generated
@@ -1317,6 +1314,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                     onLogoSelect={(logo, decision) => {
                       setSelectedLogo(logo);
                       setLogoDecision(decision);
+                    }}
+                    onPreferencesChange={(preferences) => {
+                      setLogoPreferences(preferences);
                     }}
                   />
                 )}
