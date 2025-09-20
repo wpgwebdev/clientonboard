@@ -113,6 +113,8 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
       
       const result = await response.json();
       console.log('[DEBUG] Logo generation completed successfully');
+      console.log('[DEBUG] API response data:', result);
+      console.log('[DEBUG] Number of logos in response:', result.logos?.length);
       
       return result;
     },
@@ -269,15 +271,26 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
           <div className="flex gap-3">
             <Button 
               type="submit" 
+              disabled={generateLogosMutation.isPending}
               data-testid="button-generate-logos"
             >
-              <Wand2 className="w-4 h-4 mr-2" />
-              Generate Logos
+              {generateLogosMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Wand2 className="w-4 h-4 mr-2" />
+                  Generate Logos
+                </>
+              )}
             </Button>
             <Button 
               type="button" 
               variant="outline" 
               onClick={onCancel}
+              disabled={generateLogosMutation.isPending}
               data-testid="button-cancel-generation"
             >
               Cancel
