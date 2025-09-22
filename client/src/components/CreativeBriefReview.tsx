@@ -36,6 +36,8 @@ export interface CreativeBriefData {
   crmIntegration?: {
     selectedCrms: string[];
     customCrmNames?: string[];
+    selectedMarketingAutomation: string[];
+    customMarketingAutomationNames?: string[];
   };
   images: File[];
   designStyle: string;
@@ -79,6 +81,33 @@ function formatCrmNames(selectedCrms: string[], customCrmNames?: string[]): stri
   });
   
   return formattedCrms;
+}
+
+// Helper function to format Marketing Automation names for display
+function formatMarketingAutomationNames(selectedPlatforms: string[], customNames?: string[]): string[] {
+  const platformDisplayNames: Record<string, string> = {
+    'klaviyo': 'Klaviyo',
+    'hubspot': 'HubSpot',
+    'activecampaign': 'ActiveCampaign',
+    'mailchimp': 'Mailchimp',
+    'brevo': 'Brevo',
+    'marketo-engage': 'Marketo Engage',
+    'pardot': 'Pardot'
+  };
+  
+  const formattedPlatforms: string[] = [];
+  
+  selectedPlatforms.forEach(platform => {
+    if (platform === 'custom') {
+      if (customNames && customNames.length > 0) {
+        formattedPlatforms.push(...customNames);
+      }
+    } else {
+      formattedPlatforms.push(platformDisplayNames[platform] || platform);
+    }
+  });
+  
+  return formattedPlatforms;
 }
 
 export default function CreativeBriefReview({ 
@@ -440,11 +469,11 @@ export default function CreativeBriefReview({
               </div>
             </div>
 
-            {/* CRM Integration */}
-            {briefData.crmIntegration && (
+            {/* Integrations */}
+            {briefData.crmIntegration && (briefData.crmIntegration.selectedCrms?.length > 0 || briefData.crmIntegration.selectedMarketingAutomation?.length > 0) && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-semibold">CRM Integration</h4>
+                  <h4 className="font-semibold">Integrations</h4>
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -454,17 +483,32 @@ export default function CreativeBriefReview({
                     Edit
                   </Button>
                 </div>
-                <div className="space-y-3">
-                  <div className="border-l-2 border-primary pl-3">
-                    <p className="text-sm font-medium">Selected CRM Platforms</p>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {formatCrmNames(briefData.crmIntegration.selectedCrms, briefData.crmIntegration.customCrmNames).map((crmName, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {crmName}
-                        </Badge>
-                      ))}
+                <div className="space-y-4">
+                  {briefData.crmIntegration.selectedCrms?.length > 0 && (
+                    <div className="border-l-2 border-primary pl-3">
+                      <p className="text-sm font-medium">CRM Platforms</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {formatCrmNames(briefData.crmIntegration.selectedCrms, briefData.crmIntegration.customCrmNames).map((crmName, index) => (
+                          <Badge key={`crm-${index}`} variant="secondary" className="text-xs">
+                            {crmName}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
+                  
+                  {briefData.crmIntegration.selectedMarketingAutomation?.length > 0 && (
+                    <div className="border-l-2 border-primary pl-3">
+                      <p className="text-sm font-medium">Marketing Automation Platforms</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {formatMarketingAutomationNames(briefData.crmIntegration.selectedMarketingAutomation, briefData.crmIntegration.customMarketingAutomationNames).map((platformName, index) => (
+                          <Badge key={`marketing-${index}`} variant="outline" className="text-xs">
+                            {platformName}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
