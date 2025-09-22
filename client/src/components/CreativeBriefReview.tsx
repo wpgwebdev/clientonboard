@@ -45,6 +45,13 @@ export interface CreativeBriefData {
     selectedEngagementFeatures: string[];
     selectedAdvancedFeatures?: string[];
   };
+  userAccountsMembership?: {
+    registrationLogin: boolean;
+    roleBasedAccess: string[];
+    roleActionsResponsibilities?: string;
+    membershipSubscriptionSystem: boolean;
+    membershipDetails?: string;
+  };
   images: File[];
   designStyle: string;
   inspirationLinks: string[];
@@ -660,6 +667,79 @@ export default function CreativeBriefReview({
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* User Accounts & Membership */}
+            {briefData.userAccountsMembership && (briefData.userAccountsMembership.registrationLogin || briefData.userAccountsMembership.membershipSubscriptionSystem) && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-semibold">User Accounts & Membership</h4>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => onEditSection('membership')}
+                    data-testid="button-edit-membership"
+                  >
+                    Edit
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  
+                  {briefData.userAccountsMembership.registrationLogin && (
+                    <div className="border-l-2 border-primary pl-3">
+                      <p className="text-sm font-medium">Registration & Login</p>
+                      <Badge variant="secondary" className="text-xs mt-2">
+                        User Registration Enabled
+                      </Badge>
+                      
+                      {briefData.userAccountsMembership.roleBasedAccess?.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-xs text-muted-foreground mb-2">Role-Based Access:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {briefData.userAccountsMembership.roleBasedAccess.map((role, index) => (
+                              <Badge key={`role-${index}`} variant="outline" className="text-xs capitalize">
+                                {role}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {briefData.userAccountsMembership.roleActionsResponsibilities && (
+                        <div className="mt-3">
+                          <p className="text-xs text-muted-foreground mb-2">Role Actions & Responsibilities:</p>
+                          <div className="p-3 bg-muted rounded-md">
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                              {briefData.userAccountsMembership.roleActionsResponsibilities}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {briefData.userAccountsMembership.membershipSubscriptionSystem && (
+                    <div className="border-l-2 border-primary pl-3">
+                      <p className="text-sm font-medium">Membership / Subscription System</p>
+                      <Badge className="text-xs mt-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
+                        Subscription System Enabled
+                      </Badge>
+                      
+                      {briefData.userAccountsMembership.membershipDetails && (
+                        <div className="mt-3">
+                          <p className="text-xs text-muted-foreground mb-2">Membership Details:</p>
+                          <div className="p-3 bg-muted rounded-md">
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                              {briefData.userAccountsMembership.membershipDetails}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                 </div>
               </div>
             )}
