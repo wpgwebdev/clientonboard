@@ -471,7 +471,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     selectedPaymentGateways: [],
     customPaymentGatewayNames: [],
     apiIntegrations: '',
-    selectedAutomationPlatforms: []
+    selectedAutomationPlatforms: [],
+    selectedEngagementFeatures: []
   });
 
   // CRM form setup
@@ -500,7 +501,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       case 4: return selectedSiteType !== "";
       case 5: return pages.length >= 2;
       case 6: return generatedContent.length > 0; // Copy step - require content generation
-      case 7: return Boolean((crmIntegration.selectedCrms.length > 0 || crmIntegration.selectedMarketingAutomation.length > 0 || crmIntegration.selectedPaymentGateways.length > 0 || (crmIntegration.apiIntegrations && crmIntegration.apiIntegrations.trim().length > 0) || crmIntegration.selectedAutomationPlatforms.length > 0) && 
+      case 7: return Boolean((crmIntegration.selectedCrms.length > 0 || crmIntegration.selectedMarketingAutomation.length > 0 || crmIntegration.selectedPaymentGateways.length > 0 || (crmIntegration.apiIntegrations && crmIntegration.apiIntegrations.trim().length > 0) || crmIntegration.selectedAutomationPlatforms.length > 0 || crmIntegration.selectedEngagementFeatures.length > 0) && 
         (!crmIntegration.selectedCrms.includes('custom') || (crmIntegration.customCrmNames && crmIntegration.customCrmNames.length > 0 && crmIntegration.customCrmNames.some(name => name?.trim()))) &&
         (!crmIntegration.selectedMarketingAutomation.includes('custom') || (crmIntegration.customMarketingAutomationNames && crmIntegration.customMarketingAutomationNames.length > 0 && crmIntegration.customMarketingAutomationNames.some(name => name?.trim()))) &&
         (!crmIntegration.selectedPaymentGateways.includes('custom') || (crmIntegration.customPaymentGatewayNames && crmIntegration.customPaymentGatewayNames.length > 0 && crmIntegration.customPaymentGatewayNames.some(name => name?.trim())))); // Integrations step
@@ -1889,6 +1890,52 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                                   </FormControl>
                                   <FormLabel className="text-sm font-normal">
                                     {platform.label}
+                                  </FormLabel>
+                                </FormItem>
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="border-t pt-6 mt-6">
+                      <FormField
+                        control={crmForm.control}
+                        name="selectedEngagementFeatures"
+                        render={() => (
+                          <FormItem>
+                            <FormLabel>Engagement & Interactivity</FormLabel>
+                            <FormDescription className="mb-4">
+                              Select engagement and interactive features you want to integrate
+                            </FormDescription>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {[
+                                { id: 'animations-motion-effects', label: 'Animations & Motion Effects' },
+                                { id: 'popups-modals', label: 'Pop-ups / Modals (newsletter, promos)' },
+                                { id: 'live-chat-integration', label: 'Live Chat Integration (Intercom, Drift, etc.)' },
+                                { id: 'polls-surveys', label: 'Polls & Surveys' },
+                                { id: 'appointment-booking-scheduling', label: 'Appointment Booking / Scheduling' },
+                                { id: 'event-calendar-ticketing', label: 'Event Calendar & Ticketing' },
+                                { id: 'social-media-feeds-sharing', label: 'Social Media Feeds / Sharing' }
+                              ].map((feature) => (
+                                <FormItem key={feature.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={crmIntegration.selectedEngagementFeatures.includes(feature.id as any)}
+                                      onCheckedChange={(checked) => {
+                                        const updatedFeatures = checked
+                                          ? [...crmIntegration.selectedEngagementFeatures, feature.id as any]
+                                          : crmIntegration.selectedEngagementFeatures.filter(id => id !== feature.id);
+                                        setCrmIntegration(prev => ({ ...prev, selectedEngagementFeatures: updatedFeatures }));
+                                        crmForm.setValue('selectedEngagementFeatures', updatedFeatures);
+                                      }}
+                                      data-testid={`checkbox-engagement-${feature.id}`}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal">
+                                    {feature.label}
                                   </FormLabel>
                                 </FormItem>
                               ))}

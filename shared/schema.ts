@@ -206,6 +206,17 @@ export const integrationSchema = z.object({
   selectedAutomationPlatforms: z.array(z.enum([
     'zapier',
     'make'
+  ])).optional().default([]),
+  
+  // Engagement & Interactivity Integration
+  selectedEngagementFeatures: z.array(z.enum([
+    'animations-motion-effects',
+    'popups-modals',
+    'live-chat-integration',
+    'polls-surveys',
+    'appointment-booking-scheduling',
+    'event-calendar-ticketing',
+    'social-media-feeds-sharing'
   ])).optional().default([])
 }).superRefine((data, ctx) => {
   // Validate that at least one integration is selected
@@ -214,8 +225,9 @@ export const integrationSchema = z.object({
   const hasAnyPayment = data.selectedPaymentGateways && data.selectedPaymentGateways.length > 0;
   const hasApiIntegrations = data.apiIntegrations && data.apiIntegrations.trim().length > 0;
   const hasAnyAutomation = data.selectedAutomationPlatforms && data.selectedAutomationPlatforms.length > 0;
+  const hasAnyEngagement = data.selectedEngagementFeatures && data.selectedEngagementFeatures.length > 0;
   
-  if (!hasAnyCrm && !hasAnyMarketing && !hasAnyPayment && !hasApiIntegrations && !hasAnyAutomation) {
+  if (!hasAnyCrm && !hasAnyMarketing && !hasAnyPayment && !hasApiIntegrations && !hasAnyAutomation && !hasAnyEngagement) {
     ctx.addIssue({
       code: 'custom',
       message: 'Please select at least one integration type',

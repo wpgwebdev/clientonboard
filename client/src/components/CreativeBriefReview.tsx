@@ -42,6 +42,7 @@ export interface CreativeBriefData {
     customPaymentGatewayNames?: string[];
     apiIntegrations?: string;
     selectedAutomationPlatforms: string[];
+    selectedEngagementFeatures: string[];
   };
   images: File[];
   designStyle: string;
@@ -152,6 +153,21 @@ function formatAutomationPlatformNames(selectedPlatforms: string[]): string[] {
   };
   
   return selectedPlatforms.map(platform => platformDisplayNames[platform] || platform);
+}
+
+// Helper function to format Engagement Feature names for display
+function formatEngagementFeatureNames(selectedFeatures: string[]): string[] {
+  const featureDisplayNames: Record<string, string> = {
+    'animations-motion-effects': 'Animations & Motion Effects',
+    'popups-modals': 'Pop-ups / Modals (newsletter, promos)',
+    'live-chat-integration': 'Live Chat Integration (Intercom, Drift, etc.)',
+    'polls-surveys': 'Polls & Surveys',
+    'appointment-booking-scheduling': 'Appointment Booking / Scheduling',
+    'event-calendar-ticketing': 'Event Calendar & Ticketing',
+    'social-media-feeds-sharing': 'Social Media Feeds / Sharing'
+  };
+  
+  return selectedFeatures.map(feature => featureDisplayNames[feature] || feature);
 }
 
 export default function CreativeBriefReview({ 
@@ -514,7 +530,7 @@ export default function CreativeBriefReview({
             </div>
 
             {/* Integrations */}
-            {briefData.crmIntegration && (briefData.crmIntegration.selectedCrms?.length > 0 || briefData.crmIntegration.selectedMarketingAutomation?.length > 0 || briefData.crmIntegration.selectedPaymentGateways?.length > 0 || briefData.crmIntegration.apiIntegrations?.trim() || briefData.crmIntegration.selectedAutomationPlatforms?.length > 0) && (
+            {briefData.crmIntegration && (briefData.crmIntegration.selectedCrms?.length > 0 || briefData.crmIntegration.selectedMarketingAutomation?.length > 0 || briefData.crmIntegration.selectedPaymentGateways?.length > 0 || briefData.crmIntegration.apiIntegrations?.trim() || briefData.crmIntegration.selectedAutomationPlatforms?.length > 0 || briefData.crmIntegration.selectedEngagementFeatures?.length > 0) && (
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-semibold">Integrations</h4>
@@ -585,6 +601,19 @@ export default function CreativeBriefReview({
                         {formatAutomationPlatformNames(briefData.crmIntegration.selectedAutomationPlatforms).map((platformName, index) => (
                           <Badge key={`automation-${index}`} variant="destructive" className="text-xs">
                             {platformName}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {briefData.crmIntegration.selectedEngagementFeatures?.length > 0 && (
+                    <div className="border-l-2 border-primary pl-3">
+                      <p className="text-sm font-medium">Engagement & Interactivity</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {formatEngagementFeatureNames(briefData.crmIntegration.selectedEngagementFeatures).map((featureName, index) => (
+                          <Badge key={`engagement-${index}`} className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                            {featureName}
                           </Badge>
                         ))}
                       </div>
