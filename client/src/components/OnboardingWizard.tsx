@@ -18,7 +18,9 @@ import {
   contentPreferencesSchema,
   type GeneratedContent,
   type ImageRequirements,
-  imageRequirementsSchema
+  imageRequirementsSchema,
+  type CrmIntegration,
+  crmIntegrationSchema
 } from "@shared/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,9 +44,10 @@ const steps: Step[] = [
   { id: 4, title: "Purpose", completed: false },
   { id: 5, title: "Sitemap", completed: false },
   { id: 6, title: "Copy", completed: false },
-  { id: 7, title: "Media", completed: false },
-  { id: 8, title: "Design", completed: false },
-  { id: 9, title: "Review", completed: false },
+  { id: 7, title: "Integrations", completed: false },
+  { id: 8, title: "Media", completed: false },
+  { id: 9, title: "Design", completed: false },
+  { id: 10, title: "Review", completed: false },
 ];
 
 const initialPages: Page[] = [
@@ -457,6 +460,22 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     additionalNotes: ''
   });
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  
+  // CRM Integration state
+  const [crmIntegration, setCrmIntegration] = useState<CrmIntegration>({
+    selectedCrm: 'salesforce',
+    customCrmName: undefined
+  });
+
+  // CRM form setup
+  const crmForm = useForm<CrmIntegration>({
+    resolver: zodResolver(crmIntegrationSchema),
+    defaultValues: crmIntegration
+  });
+
+  const onCrmSubmit = (data: CrmIntegration) => {
+    setCrmIntegration(data);
+  };
 
   const stepData = steps.map(step => ({
     ...step,
@@ -474,9 +493,10 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       case 4: return selectedSiteType !== "";
       case 5: return pages.length >= 2;
       case 6: return generatedContent.length > 0; // Copy step - require content generation
-      case 7: return true; // Media step - optional
-      case 8: return designPreferences.selectedStyle !== "";
-      case 9: return true; // Review step
+      case 7: return Boolean(crmIntegration.selectedCrm && (crmIntegration.selectedCrm !== 'custom' || (crmIntegration.customCrmName && crmIntegration.customCrmName.trim() !== ''))); // Integrations step
+      case 8: return true; // Media step - optional
+      case 9: return designPreferences.selectedStyle !== "";
+      case 10: return true; // Review step
       default: return false;
     }
   };
@@ -990,6 +1010,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         selectedLogo,
         contentPreferences,
         generatedContent,
+        crmIntegration,
         imageRequirements,
         designPreferences
       };
@@ -1010,8 +1031,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       });
 
       // Move to completion step
-      setCurrentStep(10);
-      setCompletedSteps(prev => new Set([...Array.from(prev), 9]));
+      setCurrentStep(11);
+      setCompletedSteps(prev => new Set([...Array.from(prev), 10]));
 
     } catch (error: any) {
       console.error('Submission error:', error);
@@ -1562,6 +1583,85 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         return (
           <Card>
             <CardHeader>
+              <CardTitle>CRM Integration</CardTitle>
+              <p className="text-muted-foreground">
+                Select your preferred CRM platform for customer management
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Form {...crmForm}>
+                <form className="space-y-6">
+                  <FormField
+                    control={crmForm.control}
+                    name="selectedCrm"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CRM Platform</FormLabel>
+                        <Select onValueChange={(value) => {
+                          field.onChange(value);
+                          setCrmIntegration(prev => ({ ...prev, selectedCrm: value as any }));
+                        }} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-crm-platform">
+                              <SelectValue placeholder="Select a CRM platform" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="salesforce">Salesforce</SelectItem>
+                            <SelectItem value="hubspot">HubSpot</SelectItem>
+                            <SelectItem value="zoho-crm">Zoho CRM</SelectItem>
+                            <SelectItem value="pipedrive">Pipedrive</SelectItem>
+                            <SelectItem value="microsoft-dynamics-365">Microsoft Dynamics 365</SelectItem>
+                            <SelectItem value="freshsales">Freshsales</SelectItem>
+                            <SelectItem value="ontraport">Ontraport</SelectItem>
+                            <SelectItem value="nimble">Nimble</SelectItem>
+                            <SelectItem value="nutshell">Nutshell</SelectItem>
+                            <SelectItem value="membrain">Membrain</SelectItem>
+                            <SelectItem value="sugarcrm">SugarCRM</SelectItem>
+                            <SelectItem value="custom">Add another CRM</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  {crmForm.watch('selectedCrm') === 'custom' && (
+                    <FormField
+                      control={crmForm.control}
+                      name="customCrmName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Custom CRM Name</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter your CRM name" 
+                              {...field} 
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setCrmIntegration(prev => ({ ...prev, customCrmName: e.target.value }));
+                              }}
+                              data-testid="input-custom-crm-name"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Please enter the name of your CRM platform
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        );
+
+      case 8:
+        return (
+          <Card>
+            <CardHeader>
               <CardTitle>Images & Media</CardTitle>
               <p className="text-muted-foreground">
                 Help us understand your image needs and preferences for your website.
@@ -1812,7 +1912,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           </Card>
         );
 
-      case 8:
+      case 9:
         return (
           <Card>
             <CardHeader>
@@ -1827,7 +1927,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           </Card>
         );
 
-      case 9:
+      case 10:
         // Extract colors from individual color selections, design notes, or defaults based on design style
         const extractColorsFromPreferences = (notes: string, preferences: DesignPreferences): string[] => {
           // First priority: Individual color selections
@@ -1912,6 +2012,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             'About': 'Learn more about our story and what drives us.',
             'Contact': 'Get in touch with us today.'
           },
+          crmIntegration,
           images: [], // Mock images
           designStyle: designPreferences.selectedStyle || '',
           inspirationLinks: designPreferences.inspirationLinks,
@@ -1931,7 +2032,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     }
   };
 
-  if (currentStep === 10) {
+  if (currentStep === 11) {
     // Thank you / completion page
     return (
       <div className={`max-w-4xl mx-auto ${className}`}>
@@ -1980,7 +2081,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         </Button>
         
         <div className="text-sm text-muted-foreground">
-          {currentStep === 9 ? (
+          {currentStep === 10 ? (
             <span>Ready to submit your creative brief</span>
           ) : (
             <span>
@@ -1989,7 +2090,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           )}
         </div>
         
-        {currentStep === 9 ? (
+        {currentStep === 10 ? (
           <Button
             onClick={submitProject}
             disabled={!canProceed}

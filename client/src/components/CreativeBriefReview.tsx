@@ -33,6 +33,10 @@ export interface CreativeBriefData {
   siteType: string;
   pages: { name: string; path: string }[];
   pageContent: Record<string, string>;
+  crmIntegration?: {
+    selectedCrm: string;
+    customCrmName?: string;
+  };
   images: File[];
   designStyle: string;
   inspirationLinks: string[];
@@ -404,6 +408,38 @@ export default function CreativeBriefReview({
                 )}
               </div>
             </div>
+
+            {/* CRM Integration */}
+            {briefData.crmIntegration && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-semibold">CRM Integration</h4>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => onEditSection('integration')}
+                    data-testid="button-edit-integration"
+                  >
+                    Edit
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  <div className="border-l-2 border-primary pl-3">
+                    <p className="text-sm font-medium">Selected CRM Platform</p>
+                    <p className="text-sm text-muted-foreground">
+                      {briefData.crmIntegration.selectedCrm === 'custom' && briefData.crmIntegration.customCrmName
+                        ? briefData.crmIntegration.customCrmName
+                        : briefData.crmIntegration.selectedCrm === 'microsoft-dynamics-365'
+                        ? 'Microsoft Dynamics 365'
+                        : briefData.crmIntegration.selectedCrm === 'zoho-crm'
+                        ? 'Zoho CRM'
+                        : briefData.crmIntegration.selectedCrm.charAt(0).toUpperCase() + briefData.crmIntegration.selectedCrm.slice(1)
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Images */}
             <div>
