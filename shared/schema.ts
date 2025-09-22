@@ -279,6 +279,35 @@ export const crmIntegrationSchema = integrationSchema;
 export type CrmIntegration = z.infer<typeof integrationSchema>;
 export type IntegrationData = z.infer<typeof integrationSchema>;
 
+// User Accounts & Membership Schema
+export const userAccountsMembershipSchema = z.object({
+  registrationLogin: z.boolean().default(false),
+  roleBasedAccess: z.array(z.enum(['admin', 'member', 'guest'])).optional().default([]),
+  roleActionsResponsibilities: z.string().optional(),
+  membershipSubscriptionSystem: z.boolean().default(false),
+  membershipDetails: z.string().optional()
+}).superRefine((data, ctx) => {
+  // If membership/subscription system is enabled, membership details are required
+  if (data.membershipSubscriptionSystem && (!data.membershipDetails || data.membershipDetails.trim().length === 0)) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Membership details are required when Membership/Subscription System is enabled',
+      path: ['membershipDetails']
+    });
+  }
+  
+  // If registration & login is enabled, role-based access should be defined
+  if (data.registrationLogin && (!data.roleBasedAccess || data.roleBasedAccess.length === 0)) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Role-based access is required when Registration & Login is enabled',
+      path: ['roleBasedAccess']
+    });
+  }
+});
+
+export type UserAccountsMembership = z.infer<typeof userAccountsMembershipSchema>;
+
 // Project Submission Schema
 export const projectSubmissionSchema = z.object({
   businessName: z.string(),
@@ -296,6 +325,7 @@ export const projectSubmissionSchema = z.object({
   contentPreferences: contentPreferencesSchema,
   generatedContent: z.array(generatedContentSchema),
   crmIntegration: crmIntegrationSchema.optional(),
+  userAccountsMembership: userAccountsMembershipSchema.optional(),
   imageRequirements: imageRequirementsSchema,
   designPreferences: z.object({
     selectedStyle: z.string(),
