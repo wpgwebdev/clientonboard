@@ -197,17 +197,28 @@ export const integrationSchema = z.object({
     'bank-transfer',
     'custom'
   ])).optional().default([]),
-  customPaymentGatewayNames: z.array(z.string()).optional()
+  customPaymentGatewayNames: z.array(z.string()).optional(),
+  
+  // API Integrations
+  apiIntegrations: z.string().optional(),
+  
+  // Automation Integration
+  selectedAutomationPlatforms: z.array(z.enum([
+    'zapier',
+    'make'
+  ])).optional().default([])
 }).superRefine((data, ctx) => {
   // Validate that at least one integration is selected
   const hasAnyCrm = data.selectedCrms && data.selectedCrms.length > 0;
   const hasAnyMarketing = data.selectedMarketingAutomation && data.selectedMarketingAutomation.length > 0;
   const hasAnyPayment = data.selectedPaymentGateways && data.selectedPaymentGateways.length > 0;
+  const hasApiIntegrations = data.apiIntegrations && data.apiIntegrations.trim().length > 0;
+  const hasAnyAutomation = data.selectedAutomationPlatforms && data.selectedAutomationPlatforms.length > 0;
   
-  if (!hasAnyCrm && !hasAnyMarketing && !hasAnyPayment) {
+  if (!hasAnyCrm && !hasAnyMarketing && !hasAnyPayment && !hasApiIntegrations && !hasAnyAutomation) {
     ctx.addIssue({
       code: 'custom',
-      message: 'Please select at least one CRM, Marketing Automation, or Payment Gateway platform',
+      message: 'Please select at least one integration type',
       path: ['selectedCrms']
     });
   }

@@ -468,7 +468,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     selectedMarketingAutomation: [],
     customMarketingAutomationNames: [],
     selectedPaymentGateways: [],
-    customPaymentGatewayNames: []
+    customPaymentGatewayNames: [],
+    apiIntegrations: '',
+    selectedAutomationPlatforms: []
   });
 
   // CRM form setup
@@ -497,7 +499,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       case 4: return selectedSiteType !== "";
       case 5: return pages.length >= 2;
       case 6: return generatedContent.length > 0; // Copy step - require content generation
-      case 7: return Boolean((crmIntegration.selectedCrms.length > 0 || crmIntegration.selectedMarketingAutomation.length > 0 || crmIntegration.selectedPaymentGateways.length > 0) && 
+      case 7: return Boolean((crmIntegration.selectedCrms.length > 0 || crmIntegration.selectedMarketingAutomation.length > 0 || crmIntegration.selectedPaymentGateways.length > 0 || (crmIntegration.apiIntegrations && crmIntegration.apiIntegrations.trim().length > 0) || crmIntegration.selectedAutomationPlatforms.length > 0) && 
         (!crmIntegration.selectedCrms.includes('custom') || (crmIntegration.customCrmNames && crmIntegration.customCrmNames.length > 0 && crmIntegration.customCrmNames.some(name => name?.trim()))) &&
         (!crmIntegration.selectedMarketingAutomation.includes('custom') || (crmIntegration.customMarketingAutomationNames && crmIntegration.customMarketingAutomationNames.length > 0 && crmIntegration.customMarketingAutomationNames.some(name => name?.trim()))) &&
         (!crmIntegration.selectedPaymentGateways.includes('custom') || (crmIntegration.customPaymentGatewayNames && crmIntegration.customPaymentGatewayNames.length > 0 && crmIntegration.customPaymentGatewayNames.some(name => name?.trim())))); // Integrations step
@@ -1825,6 +1827,75 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                           )}
                         />
                       )}
+                    </div>
+                    
+                    <div className="border-t pt-6 mt-6">
+                      <FormField
+                        control={crmForm.control}
+                        name="apiIntegrations"
+                        render={() => (
+                          <FormItem>
+                            <FormLabel>API Integrations</FormLabel>
+                            <FormDescription>
+                              Describe any specific API integrations you need for your website
+                            </FormDescription>
+                            <FormControl>
+                              <Textarea
+                                placeholder="e.g., Google Analytics, Facebook Pixel, Slack notifications, custom REST APIs, third-party services..."
+                                value={crmIntegration.apiIntegrations || ''}
+                                onChange={(e) => {
+                                  setCrmIntegration(prev => ({ ...prev, apiIntegrations: e.target.value }));
+                                  crmForm.setValue('apiIntegrations', e.target.value);
+                                }}
+                                data-testid="textarea-api-integrations"
+                                rows={4}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="border-t pt-6 mt-6">
+                      <FormField
+                        control={crmForm.control}
+                        name="selectedAutomationPlatforms"
+                        render={() => (
+                          <FormItem>
+                            <FormLabel>Automation Platforms</FormLabel>
+                            <FormDescription className="mb-4">
+                              Select automation platforms you want to integrate with
+                            </FormDescription>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {[
+                                { id: 'zapier', label: 'Zapier' },
+                                { id: 'make', label: 'Make (formerly Integromat)' }
+                              ].map((platform) => (
+                                <FormItem key={platform.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={crmIntegration.selectedAutomationPlatforms.includes(platform.id as any)}
+                                      onCheckedChange={(checked) => {
+                                        const updatedPlatforms = checked
+                                          ? [...crmIntegration.selectedAutomationPlatforms, platform.id as any]
+                                          : crmIntegration.selectedAutomationPlatforms.filter(id => id !== platform.id);
+                                        setCrmIntegration(prev => ({ ...prev, selectedAutomationPlatforms: updatedPlatforms }));
+                                        crmForm.setValue('selectedAutomationPlatforms', updatedPlatforms);
+                                      }}
+                                      data-testid={`checkbox-automation-${platform.id}`}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal">
+                                    {platform.label}
+                                  </FormLabel>
+                                </FormItem>
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   </div>
                 </form>

@@ -40,6 +40,8 @@ export interface CreativeBriefData {
     customMarketingAutomationNames?: string[];
     selectedPaymentGateways: string[];
     customPaymentGatewayNames?: string[];
+    apiIntegrations?: string;
+    selectedAutomationPlatforms: string[];
   };
   images: File[];
   designStyle: string;
@@ -140,6 +142,16 @@ function formatPaymentGatewayNames(selectedGateways: string[], customNames?: str
   });
   
   return formattedGateways;
+}
+
+// Helper function to format Automation Platform names for display
+function formatAutomationPlatformNames(selectedPlatforms: string[]): string[] {
+  const platformDisplayNames: Record<string, string> = {
+    'zapier': 'Zapier',
+    'make': 'Make (formerly Integromat)'
+  };
+  
+  return selectedPlatforms.map(platform => platformDisplayNames[platform] || platform);
 }
 
 export default function CreativeBriefReview({ 
@@ -502,7 +514,7 @@ export default function CreativeBriefReview({
             </div>
 
             {/* Integrations */}
-            {briefData.crmIntegration && (briefData.crmIntegration.selectedCrms?.length > 0 || briefData.crmIntegration.selectedMarketingAutomation?.length > 0 || briefData.crmIntegration.selectedPaymentGateways?.length > 0) && (
+            {briefData.crmIntegration && (briefData.crmIntegration.selectedCrms?.length > 0 || briefData.crmIntegration.selectedMarketingAutomation?.length > 0 || briefData.crmIntegration.selectedPaymentGateways?.length > 0 || briefData.crmIntegration.apiIntegrations?.trim() || briefData.crmIntegration.selectedAutomationPlatforms?.length > 0) && (
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-semibold">Integrations</h4>
@@ -549,6 +561,30 @@ export default function CreativeBriefReview({
                         {formatPaymentGatewayNames(briefData.crmIntegration.selectedPaymentGateways, briefData.crmIntegration.customPaymentGatewayNames).map((gatewayName, index) => (
                           <Badge key={`payment-${index}`} variant="default" className="text-xs">
                             {gatewayName}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {briefData.crmIntegration.apiIntegrations?.trim() && (
+                    <div className="border-l-2 border-primary pl-3">
+                      <p className="text-sm font-medium">API Integrations</p>
+                      <div className="mt-2 p-3 bg-muted rounded-md">
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {briefData.crmIntegration.apiIntegrations}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {briefData.crmIntegration.selectedAutomationPlatforms?.length > 0 && (
+                    <div className="border-l-2 border-primary pl-3">
+                      <p className="text-sm font-medium">Automation Platforms</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {formatAutomationPlatformNames(briefData.crmIntegration.selectedAutomationPlatforms).map((platformName, index) => (
+                          <Badge key={`automation-${index}`} variant="destructive" className="text-xs">
+                            {platformName}
                           </Badge>
                         ))}
                       </div>
