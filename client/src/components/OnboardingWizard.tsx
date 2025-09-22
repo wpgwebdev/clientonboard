@@ -464,7 +464,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   // CRM Integration state
   const [crmIntegration, setCrmIntegration] = useState<CrmIntegration>({
     selectedCrms: [],
-    customCrmNames: []
+    customCrmNames: [],
+    selectedMarketingAutomation: [],
+    customMarketingAutomationNames: []
   });
 
   // CRM form setup
@@ -493,7 +495,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       case 4: return selectedSiteType !== "";
       case 5: return pages.length >= 2;
       case 6: return generatedContent.length > 0; // Copy step - require content generation
-      case 7: return Boolean(crmIntegration.selectedCrms.length > 0 && (!crmIntegration.selectedCrms.includes('custom') || (crmIntegration.customCrmNames && crmIntegration.customCrmNames.length > 0 && crmIntegration.customCrmNames.some(name => name?.trim())))); // Integrations step
+      case 7: return Boolean((crmIntegration.selectedCrms.length > 0 || crmIntegration.selectedMarketingAutomation.length > 0) && 
+        (!crmIntegration.selectedCrms.includes('custom') || (crmIntegration.customCrmNames && crmIntegration.customCrmNames.length > 0 && crmIntegration.customCrmNames.some(name => name?.trim()))) &&
+        (!crmIntegration.selectedMarketingAutomation.includes('custom') || (crmIntegration.customMarketingAutomationNames && crmIntegration.customMarketingAutomationNames.length > 0 && crmIntegration.customMarketingAutomationNames.some(name => name?.trim())))); // Integrations step
       case 8: return true; // Media step - optional
       case 9: return designPreferences.selectedStyle !== "";
       case 10: return true; // Review step
@@ -1583,9 +1587,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         return (
           <Card>
             <CardHeader>
-              <CardTitle>CRM Integration</CardTitle>
+              <CardTitle>Integrations</CardTitle>
               <p className="text-muted-foreground">
-                Select all CRM platforms you want to integrate with for customer management
+                Select your CRM and Marketing Automation platforms for customer management and campaign automation
               </p>
             </CardHeader>
             <CardContent>
@@ -1668,6 +1672,82 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                       )}
                     />
                   )}
+                  
+                  <div className="border-t pt-6 mt-6">
+                    <FormField
+                      control={crmForm.control}
+                      name="selectedMarketingAutomation"
+                      render={() => (
+                        <FormItem>
+                          <FormLabel>Marketing Automation Platforms</FormLabel>
+                          <FormDescription className="mb-4">
+                            Select all marketing automation platforms you want to integrate with
+                          </FormDescription>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {[
+                              { id: 'klaviyo', label: 'Klaviyo' },
+                              { id: 'hubspot', label: 'HubSpot' },
+                              { id: 'activecampaign', label: 'ActiveCampaign' },
+                              { id: 'mailchimp', label: 'Mailchimp' },
+                              { id: 'brevo', label: 'Brevo' },
+                              { id: 'marketo-engage', label: 'Marketo Engage' },
+                              { id: 'pardot', label: 'Pardot' },
+                              { id: 'custom', label: 'Add custom platform' }
+                            ].map((platform) => (
+                              <FormItem key={platform.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={crmIntegration.selectedMarketingAutomation.includes(platform.id as any)}
+                                    onCheckedChange={(checked) => {
+                                      const updatedPlatforms = checked
+                                        ? [...crmIntegration.selectedMarketingAutomation, platform.id as any]
+                                        : crmIntegration.selectedMarketingAutomation.filter(id => id !== platform.id);
+                                      setCrmIntegration(prev => ({ ...prev, selectedMarketingAutomation: updatedPlatforms }));
+                                      crmForm.setValue('selectedMarketingAutomation', updatedPlatforms);
+                                    }}
+                                    data-testid={`checkbox-marketing-${platform.id}`}
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-sm font-normal">
+                                  {platform.label}
+                                </FormLabel>
+                              </FormItem>
+                            ))}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {crmIntegration.selectedMarketingAutomation.includes('custom') && (
+                      <FormField
+                        control={crmForm.control}
+                        name="customMarketingAutomationNames"
+                        render={() => (
+                          <FormItem className="mt-6">
+                            <FormLabel>Custom Marketing Automation Names</FormLabel>
+                            <FormDescription>
+                              Enter the names of your custom marketing automation platforms (one per line)
+                            </FormDescription>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Enter custom marketing automation names, one per line"
+                                value={(crmIntegration.customMarketingAutomationNames || []).join('\n')}
+                                onChange={(e) => {
+                                  const customNames = e.target.value.split('\n').filter(name => name.trim());
+                                  setCrmIntegration(prev => ({ ...prev, customMarketingAutomationNames: customNames }));
+                                  crmForm.setValue('customMarketingAutomationNames', customNames);
+                                }}
+                                data-testid="textarea-custom-marketing-names"
+                                rows={3}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </div>
                 </form>
               </Form>
             </CardContent>
