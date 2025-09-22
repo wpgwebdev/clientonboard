@@ -154,8 +154,9 @@ export const uploadedImageSchema = z.object({
 export type ImageRequirements = z.infer<typeof imageRequirementsSchema>;
 export type UploadedImage = z.infer<typeof uploadedImageSchema>;
 
-// CRM Integration Schemas
-export const crmIntegrationSchema = z.object({
+// Integration Schemas (CRM and Marketing Automation)
+export const integrationSchema = z.object({
+  // CRM Integration
   selectedCrms: z.array(z.enum([
     'salesforce',
     'hubspot', 
@@ -169,19 +170,57 @@ export const crmIntegrationSchema = z.object({
     'membrain',
     'sugarcrm',
     'custom'
-  ])).min(1, "Please select at least one CRM platform"),
-  customCrmNames: z.array(z.string()).optional() // Names for custom CRMs
+  ])).optional().default([]),
+  customCrmNames: z.array(z.string()).optional(),
+  
+  // Marketing Automation Integration
+  selectedMarketingAutomation: z.array(z.enum([
+    'klaviyo',
+    'hubspot',
+    'activecampaign',
+    'mailchimp',
+    'brevo',
+    'marketo-engage',
+    'pardot',
+    'custom'
+  ])).optional().default([]),
+  customMarketingAutomationNames: z.array(z.string()).optional()
 }).superRefine((data, ctx) => {
-  if (data.selectedCrms.includes('custom') && (!data.customCrmNames || data.customCrmNames.length === 0 || data.customCrmNames.every(name => !name?.trim()))) {
+  // Validate that at least one integration is selected
+  const hasAnyCrm = data.selectedCrms && data.selectedCrms.length > 0;
+  const hasAnyMarketing = data.selectedMarketingAutomation && data.selectedMarketingAutomation.length > 0;
+  
+  if (!hasAnyCrm && !hasAnyMarketing) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Please select at least one CRM or Marketing Automation platform',
+      path: ['selectedCrms']
+    });
+  }
+  
+  // Validate custom CRM names
+  if (data.selectedCrms?.includes('custom') && (!data.customCrmNames || data.customCrmNames.length === 0 || data.customCrmNames.every(name => !name?.trim()))) {
     ctx.addIssue({
       code: 'custom',
       message: 'At least one custom CRM name is required',
       path: ['customCrmNames']
     });
   }
+  
+  // Validate custom Marketing Automation names
+  if (data.selectedMarketingAutomation?.includes('custom') && (!data.customMarketingAutomationNames || data.customMarketingAutomationNames.length === 0 || data.customMarketingAutomationNames.every(name => !name?.trim()))) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'At least one custom Marketing Automation name is required',
+      path: ['customMarketingAutomationNames']
+    });
+  }
 });
 
-export type CrmIntegration = z.infer<typeof crmIntegrationSchema>;
+// Legacy alias for backward compatibility
+export const crmIntegrationSchema = integrationSchema;
+export type CrmIntegration = z.infer<typeof integrationSchema>;
+export type IntegrationData = z.infer<typeof integrationSchema>;
 
 // Project Submission Schema
 export const projectSubmissionSchema = z.object({
