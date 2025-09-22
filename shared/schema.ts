@@ -217,6 +217,16 @@ export const integrationSchema = z.object({
     'appointment-booking-scheduling',
     'event-calendar-ticketing',
     'social-media-feeds-sharing'
+  ])).optional().default([]),
+  
+  // Advanced Features Integration
+  selectedAdvancedFeatures: z.array(z.enum([
+    'multilingual-translation-support',
+    'seo-tools-meta-sitemap-schema',
+    'analytics-integration-ga4-hotjar',
+    'security-features-ssl-captcha-2fa',
+    'custom-forms-workflows',
+    'chatbots-ai-powered-scripted'
   ])).optional().default([])
 }).superRefine((data, ctx) => {
   // Validate that at least one integration is selected
@@ -226,8 +236,9 @@ export const integrationSchema = z.object({
   const hasApiIntegrations = data.apiIntegrations && data.apiIntegrations.trim().length > 0;
   const hasAnyAutomation = data.selectedAutomationPlatforms && data.selectedAutomationPlatforms.length > 0;
   const hasAnyEngagement = data.selectedEngagementFeatures && data.selectedEngagementFeatures.length > 0;
+  const hasAnyAdvanced = data.selectedAdvancedFeatures && data.selectedAdvancedFeatures.length > 0;
   
-  if (!hasAnyCrm && !hasAnyMarketing && !hasAnyPayment && !hasApiIntegrations && !hasAnyAutomation && !hasAnyEngagement) {
+  if (!hasAnyCrm && !hasAnyMarketing && !hasAnyPayment && !hasApiIntegrations && !hasAnyAutomation && !hasAnyEngagement && !hasAnyAdvanced) {
     ctx.addIssue({
       code: 'custom',
       message: 'Please select at least one integration type',

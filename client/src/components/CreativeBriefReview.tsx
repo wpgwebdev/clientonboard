@@ -43,6 +43,7 @@ export interface CreativeBriefData {
     apiIntegrations?: string;
     selectedAutomationPlatforms: string[];
     selectedEngagementFeatures: string[];
+    selectedAdvancedFeatures?: string[];
   };
   images: File[];
   designStyle: string;
@@ -165,6 +166,20 @@ function formatEngagementFeatureNames(selectedFeatures: string[]): string[] {
     'appointment-booking-scheduling': 'Appointment Booking / Scheduling',
     'event-calendar-ticketing': 'Event Calendar & Ticketing',
     'social-media-feeds-sharing': 'Social Media Feeds / Sharing'
+  };
+  
+  return selectedFeatures.map(feature => featureDisplayNames[feature] || feature);
+}
+
+// Helper function to format Advanced Feature names for display
+function formatAdvancedFeatureNames(selectedFeatures: string[]): string[] {
+  const featureDisplayNames: Record<string, string> = {
+    'multilingual-translation-support': 'Multilingual / Translation Support',
+    'seo-tools-meta-sitemap-schema': 'SEO Tools (meta tags, sitemap, schema)',
+    'analytics-integration-ga4-hotjar': 'Analytics Integration (GA4, Hotjar, etc.)',
+    'security-features-ssl-captcha-2fa': 'Security Features (SSL, Captcha, 2FA)',
+    'custom-forms-workflows': 'Custom Forms & Workflows',
+    'chatbots-ai-powered-scripted': 'Chatbots (AI-powered or scripted)'
   };
   
   return selectedFeatures.map(feature => featureDisplayNames[feature] || feature);
@@ -543,7 +558,7 @@ export default function CreativeBriefReview({
             </div>
 
             {/* Integrations */}
-            {briefData.crmIntegration && (briefData.crmIntegration.selectedCrms?.length > 0 || briefData.crmIntegration.selectedMarketingAutomation?.length > 0 || briefData.crmIntegration.selectedPaymentGateways?.length > 0 || briefData.crmIntegration.apiIntegrations?.trim() || briefData.crmIntegration.selectedAutomationPlatforms?.length > 0 || briefData.crmIntegration.selectedEngagementFeatures?.length > 0) && (
+            {briefData.crmIntegration && (briefData.crmIntegration.selectedCrms?.length > 0 || briefData.crmIntegration.selectedMarketingAutomation?.length > 0 || briefData.crmIntegration.selectedPaymentGateways?.length > 0 || briefData.crmIntegration.apiIntegrations?.trim() || briefData.crmIntegration.selectedAutomationPlatforms?.length > 0 || briefData.crmIntegration.selectedEngagementFeatures?.length > 0 || (briefData.crmIntegration.selectedAdvancedFeatures && briefData.crmIntegration.selectedAdvancedFeatures.length > 0)) && (
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-semibold">Integrations</h4>
@@ -626,6 +641,19 @@ export default function CreativeBriefReview({
                       <div className="flex flex-wrap gap-2 mt-2">
                         {formatEngagementFeatureNames(briefData.crmIntegration.selectedEngagementFeatures).map((featureName, index) => (
                           <Badge key={`engagement-${index}`} className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                            {featureName}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {briefData.crmIntegration.selectedAdvancedFeatures && briefData.crmIntegration.selectedAdvancedFeatures.length > 0 && (
+                    <div className="border-l-2 border-primary pl-3">
+                      <p className="text-sm font-medium">Advanced Features</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {formatAdvancedFeatureNames(briefData.crmIntegration.selectedAdvancedFeatures).map((featureName, index) => (
+                          <Badge key={`advanced-${index}`} className="text-xs bg-gradient-to-r from-orange-500 to-red-500 text-white">
                             {featureName}
                           </Badge>
                         ))}

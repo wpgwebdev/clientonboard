@@ -472,7 +472,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     customPaymentGatewayNames: [],
     apiIntegrations: '',
     selectedAutomationPlatforms: [],
-    selectedEngagementFeatures: []
+    selectedEngagementFeatures: [],
+    selectedAdvancedFeatures: []
   });
 
   // CRM form setup
@@ -1932,6 +1933,53 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                                         crmForm.setValue('selectedEngagementFeatures', updatedFeatures);
                                       }}
                                       data-testid={`checkbox-engagement-${feature.id}`}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal">
+                                    {feature.label}
+                                  </FormLabel>
+                                </FormItem>
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    {/* Advanced Features Separator */}
+                    <div className="border-t pt-6">
+                      <FormField
+                        control={crmForm.control}
+                        name="selectedAdvancedFeatures"
+                        render={() => (
+                          <FormItem>
+                            <FormLabel>Advanced Features</FormLabel>
+                            <FormDescription className="mb-4">
+                              Select advanced technical features and capabilities for your website
+                            </FormDescription>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {[
+                                { id: 'multilingual-translation-support', label: 'Multilingual / Translation Support' },
+                                { id: 'seo-tools-meta-sitemap-schema', label: 'SEO Tools (meta tags, sitemap, schema)' },
+                                { id: 'analytics-integration-ga4-hotjar', label: 'Analytics Integration (GA4, Hotjar, etc.)' },
+                                { id: 'security-features-ssl-captcha-2fa', label: 'Security Features (SSL, Captcha, 2FA)' },
+                                { id: 'custom-forms-workflows', label: 'Custom Forms & Workflows' },
+                                { id: 'chatbots-ai-powered-scripted', label: 'Chatbots (AI-powered or scripted)' }
+                              ].map((feature) => (
+                                <FormItem key={feature.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={crmIntegration.selectedAdvancedFeatures?.includes(feature.id as any) || false}
+                                      onCheckedChange={(checked) => {
+                                        const currentFeatures = crmIntegration.selectedAdvancedFeatures || [];
+                                        const updatedFeatures = checked
+                                          ? [...currentFeatures, feature.id as any]
+                                          : currentFeatures.filter(id => id !== feature.id);
+                                        setCrmIntegration(prev => ({ ...prev, selectedAdvancedFeatures: updatedFeatures }));
+                                        crmForm.setValue('selectedAdvancedFeatures', updatedFeatures);
+                                      }}
+                                      data-testid={`checkbox-advanced-${feature.id}`}
                                     />
                                   </FormControl>
                                   <FormLabel className="text-sm font-normal">
