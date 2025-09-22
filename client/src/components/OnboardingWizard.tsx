@@ -466,7 +466,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     selectedCrms: [],
     customCrmNames: [],
     selectedMarketingAutomation: [],
-    customMarketingAutomationNames: []
+    customMarketingAutomationNames: [],
+    selectedPaymentGateways: [],
+    customPaymentGatewayNames: []
   });
 
   // CRM form setup
@@ -495,9 +497,10 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       case 4: return selectedSiteType !== "";
       case 5: return pages.length >= 2;
       case 6: return generatedContent.length > 0; // Copy step - require content generation
-      case 7: return Boolean((crmIntegration.selectedCrms.length > 0 || crmIntegration.selectedMarketingAutomation.length > 0) && 
+      case 7: return Boolean((crmIntegration.selectedCrms.length > 0 || crmIntegration.selectedMarketingAutomation.length > 0 || crmIntegration.selectedPaymentGateways.length > 0) && 
         (!crmIntegration.selectedCrms.includes('custom') || (crmIntegration.customCrmNames && crmIntegration.customCrmNames.length > 0 && crmIntegration.customCrmNames.some(name => name?.trim()))) &&
-        (!crmIntegration.selectedMarketingAutomation.includes('custom') || (crmIntegration.customMarketingAutomationNames && crmIntegration.customMarketingAutomationNames.length > 0 && crmIntegration.customMarketingAutomationNames.some(name => name?.trim())))); // Integrations step
+        (!crmIntegration.selectedMarketingAutomation.includes('custom') || (crmIntegration.customMarketingAutomationNames && crmIntegration.customMarketingAutomationNames.length > 0 && crmIntegration.customMarketingAutomationNames.some(name => name?.trim()))) &&
+        (!crmIntegration.selectedPaymentGateways.includes('custom') || (crmIntegration.customPaymentGatewayNames && crmIntegration.customPaymentGatewayNames.length > 0 && crmIntegration.customPaymentGatewayNames.some(name => name?.trim())))); // Integrations step
       case 8: return true; // Media step - optional
       case 9: return designPreferences.selectedStyle !== "";
       case 10: return true; // Review step
@@ -1747,6 +1750,82 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         )}
                       />
                     )}
+                    
+                    <div className="border-t pt-6 mt-6">
+                      <FormField
+                        control={crmForm.control}
+                        name="selectedPaymentGateways"
+                        render={() => (
+                          <FormItem>
+                            <FormLabel>Payment Gateways</FormLabel>
+                            <FormDescription className="mb-4">
+                              Select all payment gateways you want to integrate with
+                            </FormDescription>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {[
+                                { id: 'stripe', label: 'Stripe' },
+                                { id: 'paypal', label: 'PayPal' },
+                                { id: 'square', label: 'Square' },
+                                { id: 'authorize-net', label: 'Authorize.net' },
+                                { id: 'amazon-pay', label: 'Amazon Pay' },
+                                { id: 'apple-pay', label: 'Apple Pay' },
+                                { id: 'bank-transfer', label: 'Bank Transfer' },
+                                { id: 'custom', label: 'Add custom gateway' }
+                              ].map((gateway) => (
+                                <FormItem key={gateway.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={crmIntegration.selectedPaymentGateways.includes(gateway.id as any)}
+                                      onCheckedChange={(checked) => {
+                                        const updatedGateways = checked
+                                          ? [...crmIntegration.selectedPaymentGateways, gateway.id as any]
+                                          : crmIntegration.selectedPaymentGateways.filter(id => id !== gateway.id);
+                                        setCrmIntegration(prev => ({ ...prev, selectedPaymentGateways: updatedGateways }));
+                                        crmForm.setValue('selectedPaymentGateways', updatedGateways);
+                                      }}
+                                      data-testid={`checkbox-payment-${gateway.id}`}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal">
+                                    {gateway.label}
+                                  </FormLabel>
+                                </FormItem>
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      {crmIntegration.selectedPaymentGateways.includes('custom') && (
+                        <FormField
+                          control={crmForm.control}
+                          name="customPaymentGatewayNames"
+                          render={() => (
+                            <FormItem className="mt-6">
+                              <FormLabel>Custom Payment Gateway Names</FormLabel>
+                              <FormDescription>
+                                Enter the names of your custom payment gateways (one per line)
+                              </FormDescription>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Enter custom payment gateway names, one per line"
+                                  value={(crmIntegration.customPaymentGatewayNames || []).join('\n')}
+                                  onChange={(e) => {
+                                    const lines = e.target.value.split('\n');
+                                    setCrmIntegration(prev => ({ ...prev, customPaymentGatewayNames: lines }));
+                                    crmForm.setValue('customPaymentGatewayNames', lines);
+                                  }}
+                                  data-testid="textarea-custom-payment-names"
+                                  rows={3}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                    </div>
                   </div>
                 </form>
               </Form>

@@ -38,6 +38,8 @@ export interface CreativeBriefData {
     customCrmNames?: string[];
     selectedMarketingAutomation: string[];
     customMarketingAutomationNames?: string[];
+    selectedPaymentGateways: string[];
+    customPaymentGatewayNames?: string[];
   };
   images: File[];
   designStyle: string;
@@ -110,6 +112,34 @@ function formatMarketingAutomationNames(selectedPlatforms: string[], customNames
   });
   
   return formattedPlatforms;
+}
+
+// Helper function to format Payment Gateway names for display
+function formatPaymentGatewayNames(selectedGateways: string[], customNames?: string[]): string[] {
+  const gatewayDisplayNames: Record<string, string> = {
+    'stripe': 'Stripe',
+    'paypal': 'PayPal',
+    'square': 'Square',
+    'authorize-net': 'Authorize.net',
+    'amazon-pay': 'Amazon Pay',
+    'apple-pay': 'Apple Pay',
+    'bank-transfer': 'Bank Transfer'
+  };
+  
+  const formattedGateways: string[] = [];
+  
+  selectedGateways.forEach(gateway => {
+    if (gateway === 'custom') {
+      if (customNames && customNames.length > 0) {
+        const filteredNames = customNames.filter(name => name.trim());
+        formattedGateways.push(...filteredNames);
+      }
+    } else {
+      formattedGateways.push(gatewayDisplayNames[gateway] || gateway);
+    }
+  });
+  
+  return formattedGateways;
 }
 
 export default function CreativeBriefReview({ 
@@ -472,7 +502,7 @@ export default function CreativeBriefReview({
             </div>
 
             {/* Integrations */}
-            {briefData.crmIntegration && (briefData.crmIntegration.selectedCrms?.length > 0 || briefData.crmIntegration.selectedMarketingAutomation?.length > 0) && (
+            {briefData.crmIntegration && (briefData.crmIntegration.selectedCrms?.length > 0 || briefData.crmIntegration.selectedMarketingAutomation?.length > 0 || briefData.crmIntegration.selectedPaymentGateways?.length > 0) && (
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-semibold">Integrations</h4>
@@ -506,6 +536,19 @@ export default function CreativeBriefReview({
                         {formatMarketingAutomationNames(briefData.crmIntegration.selectedMarketingAutomation, briefData.crmIntegration.customMarketingAutomationNames).map((platformName, index) => (
                           <Badge key={`marketing-${index}`} variant="outline" className="text-xs">
                             {platformName}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {briefData.crmIntegration.selectedPaymentGateways?.length > 0 && (
+                    <div className="border-l-2 border-primary pl-3">
+                      <p className="text-sm font-medium">Payment Gateways</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {formatPaymentGatewayNames(briefData.crmIntegration.selectedPaymentGateways, briefData.crmIntegration.customPaymentGatewayNames).map((gatewayName, index) => (
+                          <Badge key={`payment-${index}`} variant="default" className="text-xs">
+                            {gatewayName}
                           </Badge>
                         ))}
                       </div>

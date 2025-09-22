@@ -184,16 +184,30 @@ export const integrationSchema = z.object({
     'pardot',
     'custom'
   ])).optional().default([]),
-  customMarketingAutomationNames: z.array(z.string()).optional()
+  customMarketingAutomationNames: z.array(z.string()).optional(),
+  
+  // Payment Gateway Integration
+  selectedPaymentGateways: z.array(z.enum([
+    'stripe',
+    'paypal',
+    'square',
+    'authorize-net',
+    'amazon-pay',
+    'apple-pay',
+    'bank-transfer',
+    'custom'
+  ])).optional().default([]),
+  customPaymentGatewayNames: z.array(z.string()).optional()
 }).superRefine((data, ctx) => {
   // Validate that at least one integration is selected
   const hasAnyCrm = data.selectedCrms && data.selectedCrms.length > 0;
   const hasAnyMarketing = data.selectedMarketingAutomation && data.selectedMarketingAutomation.length > 0;
+  const hasAnyPayment = data.selectedPaymentGateways && data.selectedPaymentGateways.length > 0;
   
-  if (!hasAnyCrm && !hasAnyMarketing) {
+  if (!hasAnyCrm && !hasAnyMarketing && !hasAnyPayment) {
     ctx.addIssue({
       code: 'custom',
-      message: 'Please select at least one CRM or Marketing Automation platform',
+      message: 'Please select at least one CRM, Marketing Automation, or Payment Gateway platform',
       path: ['selectedCrms']
     });
   }
@@ -213,6 +227,15 @@ export const integrationSchema = z.object({
       code: 'custom',
       message: 'At least one custom Marketing Automation name is required',
       path: ['customMarketingAutomationNames']
+    });
+  }
+  
+  // Validate custom Payment Gateway names
+  if (data.selectedPaymentGateways?.includes('custom') && (!data.customPaymentGatewayNames || data.customPaymentGatewayNames.length === 0 || data.customPaymentGatewayNames.every(name => !name?.trim()))) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'At least one custom Payment Gateway name is required',
+      path: ['customPaymentGatewayNames']
     });
   }
 });
