@@ -2046,7 +2046,15 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         <FormControl>
                           <Checkbox
                             checked={field.value}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) => {
+                              // Update form state
+                              field.onChange(checked);
+                              // Also update component state to ensure consistency
+                              setUserAccountsMembership(prev => ({
+                                ...prev,
+                                registrationLogin: !!checked
+                              }));
+                            }}
                             data-testid="checkbox-registration-login"
                           />
                         </FormControl>
@@ -2061,7 +2069,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                   />
 
                   {/* Role-Based Access - Only show if Registration & Login is enabled */}
-                  {membershipForm.watch("registrationLogin") && (
+                  {userAccountsMembership.registrationLogin && (
                     <FormField
                       control={membershipForm.control}
                       name="roleBasedAccess"
