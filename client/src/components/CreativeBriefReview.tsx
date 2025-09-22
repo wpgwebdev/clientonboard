@@ -34,8 +34,8 @@ export interface CreativeBriefData {
   pages: { name: string; path: string }[];
   pageContent: Record<string, string>;
   crmIntegration?: {
-    selectedCrm: string;
-    customCrmName?: string;
+    selectedCrms: string[];
+    customCrmNames?: string[];
   };
   images: File[];
   designStyle: string;
@@ -51,11 +51,7 @@ interface CreativeBriefReviewProps {
 }
 
 // Helper function to format CRM names for display
-function formatCrmName(selectedCrm: string, customCrmName?: string): string {
-  if (selectedCrm === 'custom' && customCrmName) {
-    return customCrmName;
-  }
-  
+function formatCrmNames(selectedCrms: string[], customCrmNames?: string[]): string[] {
   const crmDisplayNames: Record<string, string> = {
     'salesforce': 'Salesforce',
     'hubspot': 'HubSpot',
@@ -70,7 +66,19 @@ function formatCrmName(selectedCrm: string, customCrmName?: string): string {
     'sugarcrm': 'SugarCRM'
   };
   
-  return crmDisplayNames[selectedCrm] || selectedCrm;
+  const formattedCrms: string[] = [];
+  
+  selectedCrms.forEach(crm => {
+    if (crm === 'custom') {
+      if (customCrmNames && customCrmNames.length > 0) {
+        formattedCrms.push(...customCrmNames);
+      }
+    } else {
+      formattedCrms.push(crmDisplayNames[crm] || crm);
+    }
+  });
+  
+  return formattedCrms;
 }
 
 export default function CreativeBriefReview({ 
@@ -448,10 +456,14 @@ export default function CreativeBriefReview({
                 </div>
                 <div className="space-y-3">
                   <div className="border-l-2 border-primary pl-3">
-                    <p className="text-sm font-medium">Selected CRM Platform</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatCrmName(briefData.crmIntegration.selectedCrm, briefData.crmIntegration.customCrmName)}
-                    </p>
+                    <p className="text-sm font-medium">Selected CRM Platforms</p>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {formatCrmNames(briefData.crmIntegration.selectedCrms, briefData.crmIntegration.customCrmNames).map((crmName, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {crmName}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>

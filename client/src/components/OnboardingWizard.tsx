@@ -463,8 +463,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   
   // CRM Integration state
   const [crmIntegration, setCrmIntegration] = useState<CrmIntegration>({
-    selectedCrm: 'salesforce',
-    customCrmName: undefined
+    selectedCrms: [],
+    customCrmNames: []
   });
 
   // CRM form setup
@@ -493,7 +493,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       case 4: return selectedSiteType !== "";
       case 5: return pages.length >= 2;
       case 6: return generatedContent.length > 0; // Copy step - require content generation
-      case 7: return Boolean(crmIntegration.selectedCrm && (crmIntegration.selectedCrm !== 'custom' || (crmIntegration.customCrmName && crmIntegration.customCrmName.trim() !== ''))); // Integrations step
+      case 7: return Boolean(crmIntegration.selectedCrms.length > 0 && (!crmIntegration.selectedCrms.includes('custom') || (crmIntegration.customCrmNames && crmIntegration.customCrmNames.length > 0 && crmIntegration.customCrmNames.some(name => name?.trim())))); // Integrations step
       case 8: return true; // Media step - optional
       case 9: return designPreferences.selectedStyle !== "";
       case 10: return true; // Review step
@@ -1585,7 +1585,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             <CardHeader>
               <CardTitle>CRM Integration</CardTitle>
               <p className="text-muted-foreground">
-                Select your preferred CRM platform for customer management
+                Select all CRM platforms you want to integrate with for customer management
               </p>
             </CardHeader>
             <CardContent>
@@ -1593,60 +1593,76 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                 <form className="space-y-6">
                   <FormField
                     control={crmForm.control}
-                    name="selectedCrm"
-                    render={({ field }) => (
+                    name="selectedCrms"
+                    render={() => (
                       <FormItem>
-                        <FormLabel>CRM Platform</FormLabel>
-                        <Select onValueChange={(value) => {
-                          field.onChange(value);
-                          setCrmIntegration(prev => ({ ...prev, selectedCrm: value as any }));
-                        }} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-crm-platform">
-                              <SelectValue placeholder="Select a CRM platform" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="salesforce">Salesforce</SelectItem>
-                            <SelectItem value="hubspot">HubSpot</SelectItem>
-                            <SelectItem value="zoho-crm">Zoho CRM</SelectItem>
-                            <SelectItem value="pipedrive">Pipedrive</SelectItem>
-                            <SelectItem value="microsoft-dynamics-365">Microsoft Dynamics 365</SelectItem>
-                            <SelectItem value="freshsales">Freshsales</SelectItem>
-                            <SelectItem value="ontraport">Ontraport</SelectItem>
-                            <SelectItem value="nimble">Nimble</SelectItem>
-                            <SelectItem value="nutshell">Nutshell</SelectItem>
-                            <SelectItem value="membrain">Membrain</SelectItem>
-                            <SelectItem value="sugarcrm">SugarCRM</SelectItem>
-                            <SelectItem value="custom">Add another CRM</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>CRM Platforms</FormLabel>
+                        <FormDescription className="mb-4">
+                          Select all CRM platforms you want to integrate with
+                        </FormDescription>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {[
+                            { id: 'salesforce', label: 'Salesforce' },
+                            { id: 'hubspot', label: 'HubSpot' },
+                            { id: 'zoho-crm', label: 'Zoho CRM' },
+                            { id: 'pipedrive', label: 'Pipedrive' },
+                            { id: 'microsoft-dynamics-365', label: 'Microsoft Dynamics 365' },
+                            { id: 'freshsales', label: 'Freshsales' },
+                            { id: 'ontraport', label: 'Ontraport' },
+                            { id: 'nimble', label: 'Nimble' },
+                            { id: 'nutshell', label: 'Nutshell' },
+                            { id: 'membrain', label: 'Membrain' },
+                            { id: 'sugarcrm', label: 'SugarCRM' },
+                            { id: 'custom', label: 'Add custom CRM' }
+                          ].map((crm) => (
+                            <FormItem key={crm.id} className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={crmIntegration.selectedCrms.includes(crm.id as any)}
+                                  onCheckedChange={(checked) => {
+                                    const updatedCrms = checked
+                                      ? [...crmIntegration.selectedCrms, crm.id as any]
+                                      : crmIntegration.selectedCrms.filter(id => id !== crm.id);
+                                    setCrmIntegration(prev => ({ ...prev, selectedCrms: updatedCrms }));
+                                    crmForm.setValue('selectedCrms', updatedCrms);
+                                  }}
+                                  data-testid={`checkbox-crm-${crm.id}`}
+                                />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">
+                                {crm.label}
+                              </FormLabel>
+                            </FormItem>
+                          ))}
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                   
-                  {crmForm.watch('selectedCrm') === 'custom' && (
+                  {crmIntegration.selectedCrms.includes('custom') && (
                     <FormField
                       control={crmForm.control}
-                      name="customCrmName"
-                      render={({ field }) => (
+                      name="customCrmNames"
+                      render={() => (
                         <FormItem>
-                          <FormLabel>Custom CRM Name</FormLabel>
+                          <FormLabel>Custom CRM Names</FormLabel>
+                          <FormDescription>
+                            Enter the names of your custom CRM platforms (one per line)
+                          </FormDescription>
                           <FormControl>
-                            <Input 
-                              placeholder="Enter your CRM name" 
-                              value={field.value || ''}
+                            <Textarea
+                              placeholder="Enter custom CRM names, one per line"
+                              value={(crmIntegration.customCrmNames || []).join('\n')}
                               onChange={(e) => {
-                                field.onChange(e.target.value);
-                                setCrmIntegration(prev => ({ ...prev, customCrmName: e.target.value }));
+                                const customNames = e.target.value.split('\n').filter(name => name.trim());
+                                setCrmIntegration(prev => ({ ...prev, customCrmNames: customNames }));
+                                crmForm.setValue('customCrmNames', customNames);
                               }}
-                              data-testid="input-custom-crm-name"
+                              data-testid="textarea-custom-crm-names"
+                              rows={3}
                             />
                           </FormControl>
-                          <FormDescription>
-                            Please enter the name of your CRM platform
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
