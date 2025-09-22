@@ -213,6 +213,26 @@ export default function DesignStyleSelector({
             </Card>
           ))}
         </div>
+        
+        {/* Custom Font Input */}
+        <div className="mt-6">
+          <Label htmlFor="custom-font" className="text-sm font-medium">Or Enter Custom Font Name</Label>
+          <p className="text-xs text-muted-foreground mb-3">
+            Enter the name of any Google Font or web-safe font family
+          </p>
+          <Input
+            id="custom-font"
+            placeholder="e.g., Helvetica, Arial, Times New Roman..."
+            value={preferences.preferredFont && !['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Source Sans Pro', 'Nunito', 'Playfair Display', 'Merriweather', 'Oswald', 'Raleway'].includes(preferences.preferredFont) ? preferences.preferredFont : ''}
+            onChange={(e) => {
+              const customFont = e.target.value;
+              const updatedPreferences = { ...preferences, preferredFont: customFont };
+              onPreferencesUpdate(updatedPreferences);
+            }}
+            className="max-w-md"
+            data-testid="input-custom-font"
+          />
+        </div>
       </div>
 
       {/* Color Selection */}
