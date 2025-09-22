@@ -154,6 +154,27 @@ export const uploadedImageSchema = z.object({
 export type ImageRequirements = z.infer<typeof imageRequirementsSchema>;
 export type UploadedImage = z.infer<typeof uploadedImageSchema>;
 
+// CRM Integration Schemas
+export const crmIntegrationSchema = z.object({
+  selectedCrm: z.enum([
+    'salesforce',
+    'hubspot', 
+    'zoho-crm',
+    'pipedrive',
+    'microsoft-dynamics-365',
+    'freshsales',
+    'ontraport',
+    'nimble',
+    'nutshell',
+    'membrain',
+    'sugarcrm',
+    'custom'
+  ]),
+  customCrmName: z.string().optional() // Only filled when selectedCrm is 'custom'
+});
+
+export type CrmIntegration = z.infer<typeof crmIntegrationSchema>;
+
 // Project Submission Schema
 export const projectSubmissionSchema = z.object({
   businessName: z.string(),
@@ -170,6 +191,7 @@ export const projectSubmissionSchema = z.object({
   selectedLogo: generatedLogoSchema.optional(),
   contentPreferences: contentPreferencesSchema,
   generatedContent: z.array(generatedContentSchema),
+  crmIntegration: crmIntegrationSchema.optional(),
   imageRequirements: imageRequirementsSchema,
   designPreferences: z.object({
     selectedStyle: z.string(),
