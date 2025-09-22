@@ -1636,9 +1636,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                           <FormControl>
                             <Input 
                               placeholder="Enter your CRM name" 
-                              {...field} 
+                              value={field.value || ''}
                               onChange={(e) => {
-                                field.onChange(e);
+                                field.onChange(e.target.value);
                                 setCrmIntegration(prev => ({ ...prev, customCrmName: e.target.value }));
                               }}
                               data-testid="input-custom-crm-name"

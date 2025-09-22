@@ -171,6 +171,14 @@ export const crmIntegrationSchema = z.object({
     'custom'
   ]),
   customCrmName: z.string().optional() // Only filled when selectedCrm is 'custom'
+}).superRefine((data, ctx) => {
+  if (data.selectedCrm === 'custom' && !data.customCrmName?.trim()) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Custom CRM name is required',
+      path: ['customCrmName']
+    });
+  }
 });
 
 export type CrmIntegration = z.infer<typeof crmIntegrationSchema>;

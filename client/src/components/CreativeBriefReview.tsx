@@ -50,6 +50,29 @@ interface CreativeBriefReviewProps {
   className?: string;
 }
 
+// Helper function to format CRM names for display
+function formatCrmName(selectedCrm: string, customCrmName?: string): string {
+  if (selectedCrm === 'custom' && customCrmName) {
+    return customCrmName;
+  }
+  
+  const crmDisplayNames: Record<string, string> = {
+    'salesforce': 'Salesforce',
+    'hubspot': 'HubSpot',
+    'zoho-crm': 'Zoho CRM',
+    'pipedrive': 'Pipedrive',
+    'microsoft-dynamics-365': 'Microsoft Dynamics 365',
+    'freshsales': 'Freshsales',
+    'ontraport': 'Ontraport',
+    'nimble': 'Nimble',
+    'nutshell': 'Nutshell',
+    'membrain': 'Membrain',
+    'sugarcrm': 'SugarCRM'
+  };
+  
+  return crmDisplayNames[selectedCrm] || selectedCrm;
+}
+
 export default function CreativeBriefReview({ 
   briefData, 
   onExportPDF, 
@@ -427,14 +450,7 @@ export default function CreativeBriefReview({
                   <div className="border-l-2 border-primary pl-3">
                     <p className="text-sm font-medium">Selected CRM Platform</p>
                     <p className="text-sm text-muted-foreground">
-                      {briefData.crmIntegration.selectedCrm === 'custom' && briefData.crmIntegration.customCrmName
-                        ? briefData.crmIntegration.customCrmName
-                        : briefData.crmIntegration.selectedCrm === 'microsoft-dynamics-365'
-                        ? 'Microsoft Dynamics 365'
-                        : briefData.crmIntegration.selectedCrm === 'zoho-crm'
-                        ? 'Zoho CRM'
-                        : briefData.crmIntegration.selectedCrm.charAt(0).toUpperCase() + briefData.crmIntegration.selectedCrm.slice(1)
-                      }
+                      {formatCrmName(briefData.crmIntegration.selectedCrm, briefData.crmIntegration.customCrmName)}
                     </p>
                   </div>
                 </div>
