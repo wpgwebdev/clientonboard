@@ -1046,6 +1046,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         contentPreferences,
         generatedContent,
         crmIntegration,
+        userAccountsMembership,
         imageRequirements,
         designPreferences
       };
@@ -2533,6 +2534,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             'Contact': 'Get in touch with us today.'
           },
           crmIntegration,
+          userAccountsMembership,
           images: [], // Mock images
           designStyle: designPreferences.selectedStyle || '',
           inspirationLinks: designPreferences.inspirationLinks,
@@ -2601,7 +2603,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         </Button>
         
         <div className="text-sm text-muted-foreground">
-          {currentStep === 10 ? (
+          {currentStep === 11 ? (
             <span>Ready to submit your creative brief</span>
           ) : (
             <span>
@@ -2610,7 +2612,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           )}
         </div>
         
-        {currentStep === 10 ? (
+        {currentStep === 11 ? (
           <Button
             onClick={submitProject}
             disabled={!canProceed}
