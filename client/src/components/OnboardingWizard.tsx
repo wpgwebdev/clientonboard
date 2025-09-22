@@ -20,7 +20,9 @@ import {
   type ImageRequirements,
   imageRequirementsSchema,
   type CrmIntegration,
-  crmIntegrationSchema
+  crmIntegrationSchema,
+  type UserAccountsMembership,
+  userAccountsMembershipSchema
 } from "@shared/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,9 +47,10 @@ const steps: Step[] = [
   { id: 5, title: "Sitemap", completed: false },
   { id: 6, title: "Copy", completed: false },
   { id: 7, title: "Integrations", completed: false },
-  { id: 8, title: "Media", completed: false },
-  { id: 9, title: "Design", completed: false },
-  { id: 10, title: "Review", completed: false },
+  { id: 8, title: "User Accounts & Membership", completed: false },
+  { id: 9, title: "Media", completed: false },
+  { id: 10, title: "Design", completed: false },
+  { id: 11, title: "Review", completed: false },
 ];
 
 const initialPages: Page[] = [
@@ -476,6 +479,15 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     selectedAdvancedFeatures: []
   });
 
+  // User Accounts & Membership state
+  const [userAccountsMembership, setUserAccountsMembership] = useState<UserAccountsMembership>({
+    registrationLogin: false,
+    roleBasedAccess: [],
+    roleActionsResponsibilities: '',
+    membershipSubscriptionSystem: false,
+    membershipDetails: ''
+  });
+
   // CRM form setup
   const crmForm = useForm<CrmIntegration>({
     resolver: zodResolver(crmIntegrationSchema),
@@ -484,6 +496,16 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
   const onCrmSubmit = (data: CrmIntegration) => {
     setCrmIntegration(data);
+  };
+
+  // User Accounts & Membership form setup
+  const membershipForm = useForm<UserAccountsMembership>({
+    resolver: zodResolver(userAccountsMembershipSchema),
+    defaultValues: userAccountsMembership
+  });
+
+  const onMembershipSubmit = (data: UserAccountsMembership) => {
+    setUserAccountsMembership(data);
   };
 
   const stepData = steps.map(step => ({
@@ -506,9 +528,10 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         (!crmIntegration.selectedCrms.includes('custom') || (crmIntegration.customCrmNames && crmIntegration.customCrmNames.length > 0 && crmIntegration.customCrmNames.some(name => name?.trim()))) &&
         (!crmIntegration.selectedMarketingAutomation.includes('custom') || (crmIntegration.customMarketingAutomationNames && crmIntegration.customMarketingAutomationNames.length > 0 && crmIntegration.customMarketingAutomationNames.some(name => name?.trim()))) &&
         (!crmIntegration.selectedPaymentGateways.includes('custom') || (crmIntegration.customPaymentGatewayNames && crmIntegration.customPaymentGatewayNames.length > 0 && crmIntegration.customPaymentGatewayNames.some(name => name?.trim())))); // Integrations step
-      case 8: return true; // Media step - optional
-      case 9: return designPreferences.selectedStyle !== "";
-      case 10: return true; // Review step
+      case 8: return membershipForm.formState.isValid; // User Accounts & Membership step
+      case 9: return true; // Media step - optional
+      case 10: return designPreferences.selectedStyle !== "";
+      case 11: return true; // Review step
       default: return false;
     }
   };
@@ -2004,6 +2027,161 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         return (
           <Card>
             <CardHeader>
+              <CardTitle>User Accounts & Membership</CardTitle>
+              <p className="text-muted-foreground">
+                Configure user account and membership features for your website.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Form {...membershipForm}>
+                <form onSubmit={membershipForm.handleSubmit(onMembershipSubmit)} className="space-y-6">
+                  
+                  {/* Registration & Login */}
+                  <FormField
+                    control={membershipForm.control}
+                    name="registrationLogin"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-registration-login"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Registration & Login</FormLabel>
+                          <FormDescription>
+                            Allow users to create accounts and log in to your website
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Role-Based Access - Only show if Registration & Login is enabled */}
+                  {membershipForm.watch("registrationLogin") && (
+                    <FormField
+                      control={membershipForm.control}
+                      name="roleBasedAccess"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Role-Based Access</FormLabel>
+                          <FormDescription>
+                            Select the user roles that will be available on your website
+                          </FormDescription>
+                          <div className="flex gap-4">
+                            {(['admin', 'member', 'guest'] as const).map((role) => (
+                              <FormItem key={role} className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(role)}
+                                    onCheckedChange={(checked) => {
+                                      const currentValue = field.value || [];
+                                      if (checked) {
+                                        field.onChange([...currentValue, role]);
+                                      } else {
+                                        field.onChange(currentValue.filter((v) => v !== role));
+                                      }
+                                    }}
+                                    data-testid={`checkbox-role-${role}`}
+                                  />
+                                </FormControl>
+                                <FormLabel className="capitalize">
+                                  {role}
+                                </FormLabel>
+                              </FormItem>
+                            ))}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {/* Role Actions & Responsibilities */}
+                  {membershipForm.watch("registrationLogin") && (
+                    <FormField
+                      control={membershipForm.control}
+                      name="roleActionsResponsibilities"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Role Actions & Responsibilities</FormLabel>
+                          <FormDescription>
+                            Describe what actions each role can perform and their responsibilities
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea
+                              placeholder="For example: Admins can manage all content and users. Members can create and edit their own content. Guests can view public content only..."
+                              {...field}
+                              rows={4}
+                              data-testid="textarea-role-actions"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {/* Membership/Subscription System */}
+                  <FormField
+                    control={membershipForm.control}
+                    name="membershipSubscriptionSystem"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-membership-subscription"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Membership / Subscription System</FormLabel>
+                          <FormDescription>
+                            Enable paid memberships or subscription features
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Membership Details - Only show if Membership/Subscription is enabled */}
+                  {membershipForm.watch("membershipSubscriptionSystem") && (
+                    <FormField
+                      control={membershipForm.control}
+                      name="membershipDetails"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Membership Details</FormLabel>
+                          <FormDescription>
+                            Provide details about your membership or subscription offerings
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Describe your membership tiers, pricing, benefits, subscription duration, payment frequency, etc..."
+                              {...field}
+                              rows={5}
+                              data-testid="textarea-membership-details"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        );
+
+      case 9:
+        return (
+          <Card>
+            <CardHeader>
               <CardTitle>Images & Media</CardTitle>
               <p className="text-muted-foreground">
                 Help us understand your image needs and preferences for your website.
@@ -2254,7 +2432,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           </Card>
         );
 
-      case 9:
+      case 10:
         return (
           <Card>
             <CardHeader>
@@ -2269,7 +2447,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           </Card>
         );
 
-      case 10:
+      case 11:
         // Extract colors from individual color selections, design notes, or defaults based on design style
         const extractColorsFromPreferences = (notes: string, preferences: DesignPreferences): string[] => {
           // First priority: Individual color selections
