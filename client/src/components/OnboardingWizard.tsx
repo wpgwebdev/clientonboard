@@ -2298,7 +2298,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           accentColor: designPreferences.accentColor,
           backgroundColor: designPreferences.backgroundColor,
           textColor: designPreferences.textColor,
-          fonts: ['Inter', 'Open Sans'], // Mock fonts
+          fonts: designPreferences.preferredFont ? [designPreferences.preferredFont] : [],
           siteType: selectedSiteType,
           pages: pages.map(p => ({ name: p.name, path: p.path })),
           pageContent: {

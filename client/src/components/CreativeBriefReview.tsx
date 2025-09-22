@@ -371,13 +371,26 @@ export default function CreativeBriefReview({
                   </div>
                 </div>
               )}
-              {briefData.fonts.length > 0 && (
+              {/* Selected Font */}
+              {briefData.fonts && briefData.fonts.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium mb-2">Fonts:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {briefData.fonts.map((font, index) => (
-                      <Badge key={index} variant="secondary">{font}</Badge>
-                    ))}
+                  <p className="text-sm font-medium mb-3">Selected Font:</p>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <div 
+                        className="text-lg font-semibold" 
+                        style={{ fontFamily: briefData.fonts[0] }}
+                        data-testid="text-selected-font"
+                      >
+                        {briefData.fonts[0]}
+                      </div>
+                      <p className="text-sm text-muted-foreground" style={{ fontFamily: briefData.fonts[0] }}>
+                        Sample: The quick brown fox jumps over the lazy dog
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="font-mono text-xs">
+                      {briefData.fonts[0]}
+                    </Badge>
                   </div>
                 </div>
               )}
