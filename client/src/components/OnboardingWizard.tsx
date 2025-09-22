@@ -1659,9 +1659,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                               placeholder="Enter custom CRM names, one per line"
                               value={(crmIntegration.customCrmNames || []).join('\n')}
                               onChange={(e) => {
-                                const customNames = e.target.value.split('\n').filter(name => name.trim());
-                                setCrmIntegration(prev => ({ ...prev, customCrmNames: customNames }));
-                                crmForm.setValue('customCrmNames', customNames);
+                                const lines = e.target.value.split('\n');
+                                setCrmIntegration(prev => ({ ...prev, customCrmNames: lines }));
+                                crmForm.setValue('customCrmNames', lines);
                               }}
                               data-testid="textarea-custom-crm-names"
                               rows={3}
@@ -1734,9 +1734,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                                 placeholder="Enter custom marketing automation names, one per line"
                                 value={(crmIntegration.customMarketingAutomationNames || []).join('\n')}
                                 onChange={(e) => {
-                                  const customNames = e.target.value.split('\n').filter(name => name.trim());
-                                  setCrmIntegration(prev => ({ ...prev, customMarketingAutomationNames: customNames }));
-                                  crmForm.setValue('customMarketingAutomationNames', customNames);
+                                  const lines = e.target.value.split('\n');
+                                  setCrmIntegration(prev => ({ ...prev, customMarketingAutomationNames: lines }));
+                                  crmForm.setValue('customMarketingAutomationNames', lines);
                                 }}
                                 data-testid="textarea-custom-marketing-names"
                                 rows={3}

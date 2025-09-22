@@ -73,7 +73,8 @@ function formatCrmNames(selectedCrms: string[], customCrmNames?: string[]): stri
   selectedCrms.forEach(crm => {
     if (crm === 'custom') {
       if (customCrmNames && customCrmNames.length > 0) {
-        formattedCrms.push(...customCrmNames);
+        const filteredNames = customCrmNames.filter(name => name.trim());
+        formattedCrms.push(...filteredNames);
       }
     } else {
       formattedCrms.push(crmDisplayNames[crm] || crm);
@@ -100,7 +101,8 @@ function formatMarketingAutomationNames(selectedPlatforms: string[], customNames
   selectedPlatforms.forEach(platform => {
     if (platform === 'custom') {
       if (customNames && customNames.length > 0) {
-        formattedPlatforms.push(...customNames);
+        const filteredNames = customNames.filter(name => name.trim());
+        formattedPlatforms.push(...filteredNames);
       }
     } else {
       formattedPlatforms.push(platformDisplayNames[platform] || platform);
