@@ -438,6 +438,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const [pages, setPages] = useState<Page[]>(initialPages);
   const [designPreferences, setDesignPreferences] = useState<DesignPreferences>({
     selectedStyle: "",
+    preferredFont: "",
     primaryColor: "#3B82F6",
     secondaryColor: "#1E40AF",
     accentColor: "#60A5FA",

@@ -16,6 +16,7 @@ export interface DesignStyle {
 
 export interface DesignPreferences {
   selectedStyle?: string;
+  preferredFont?: string;
   primaryColor?: string;
   secondaryColor?: string;
   accentColor?: string;
@@ -162,6 +163,55 @@ export default function DesignStyleSelector({
               </Card>
             );
           })}
+        </div>
+      </div>
+
+      {/* Font Selection */}
+      <div>
+        <h3 className="font-semibold text-lg mb-4">Choose Your Font</h3>
+        <p className="text-sm text-muted-foreground mb-6">
+          Select a preferred font for your website's typography
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            { value: "Inter", label: "Inter", preview: "Clean & Modern" },
+            { value: "Roboto", label: "Roboto", preview: "Google's Standard" },
+            { value: "Open Sans", label: "Open Sans", preview: "Friendly & Readable" },
+            { value: "Lato", label: "Lato", preview: "Professional" },
+            { value: "Montserrat", label: "Montserrat", preview: "Urban & Stylish" },
+            { value: "Poppins", label: "Poppins", preview: "Rounded & Friendly" },
+            { value: "Source Sans Pro", label: "Source Sans Pro", preview: "Clean Sans-serif" },
+            { value: "Nunito", label: "Nunito", preview: "Warm & Inviting" },
+            { value: "Playfair Display", label: "Playfair Display", preview: "Elegant Serif" },
+            { value: "Merriweather", label: "Merriweather", preview: "Readable Serif" },
+            { value: "Oswald", label: "Oswald", preview: "Bold & Modern" },
+            { value: "Raleway", label: "Raleway", preview: "Sophisticated" }
+          ].map((font) => (
+            <Card
+              key={font.value}
+              className={`p-4 cursor-pointer transition-all hover-elevate ${
+                preferences.preferredFont === font.value
+                  ? "ring-2 ring-primary bg-primary/5" 
+                  : "hover:shadow-md"
+              }`}
+              onClick={() => {
+                const updatedPreferences = { ...preferences, preferredFont: font.value };
+                onPreferencesUpdate(updatedPreferences);
+              }}
+              data-testid={`card-font-${font.value.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              <div className="space-y-2">
+                <h4 className="font-semibold text-base" style={{ fontFamily: font.value }}>{font.label}</h4>
+                <p className="text-sm text-muted-foreground" style={{ fontFamily: font.value }}>
+                  {font.preview}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Sample: The quick brown fox jumps
+                </p>
+              </div>
+            </Card>
+          ))}
         </div>
       </div>
 

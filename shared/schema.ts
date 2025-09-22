@@ -276,6 +276,7 @@ export const projectSubmissionSchema = z.object({
   imageRequirements: imageRequirementsSchema,
   designPreferences: z.object({
     selectedStyle: z.string(),
+    preferredFont: z.string().optional(),
     primaryColor: z.string().optional(),
     secondaryColor: z.string().optional(),
     accentColor: z.string().optional(),
