@@ -156,7 +156,7 @@ export type UploadedImage = z.infer<typeof uploadedImageSchema>;
 
 // CRM Integration Schemas
 export const crmIntegrationSchema = z.object({
-  selectedCrm: z.enum([
+  selectedCrms: z.array(z.enum([
     'salesforce',
     'hubspot', 
     'zoho-crm',
@@ -169,14 +169,14 @@ export const crmIntegrationSchema = z.object({
     'membrain',
     'sugarcrm',
     'custom'
-  ]),
-  customCrmName: z.string().optional() // Only filled when selectedCrm is 'custom'
+  ])).min(1, "Please select at least one CRM platform"),
+  customCrmNames: z.array(z.string()).optional() // Names for custom CRMs
 }).superRefine((data, ctx) => {
-  if (data.selectedCrm === 'custom' && !data.customCrmName?.trim()) {
+  if (data.selectedCrms.includes('custom') && (!data.customCrmNames || data.customCrmNames.length === 0 || data.customCrmNames.every(name => !name?.trim()))) {
     ctx.addIssue({
       code: 'custom',
-      message: 'Custom CRM name is required',
-      path: ['customCrmName']
+      message: 'At least one custom CRM name is required',
+      path: ['customCrmNames']
     });
   }
 });
