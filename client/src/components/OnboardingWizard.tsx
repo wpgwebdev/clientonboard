@@ -1362,21 +1362,63 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         // Save the PDF
         doc.save(`${sanitizedBusinessName}_${currentDate.replace(/\//g, '-')}.pdf`);
         
-        // Create and download zip file with uploaded images if any exist
-        if (mediaFiles && mediaFiles.length > 0) {
-          // Filter to only include image files
-          const imageFiles = mediaFiles.filter(file => file.type.startsWith('image/'));
+        // Create and download zip file with uploaded images and logos if any exist
+        const imageFiles = mediaFiles ? mediaFiles.filter(file => file.type.startsWith('image/')) : [];
+        const hasLogo = logoFile || selectedLogo;
+        
+        if (imageFiles.length > 0 || hasLogo) {
+          console.log('Creating zip file with uploaded images and logos...');
+          const zip = new JSZip();
+          let imagesAdded = 0;
+          let logosAdded = 0;
           
-          if (imageFiles.length > 0) {
-            console.log('Creating zip file with uploaded images...');
-            const zip = new JSZip();
-            
-            // Add each image file to the zip
-            for (const file of imageFiles) {
-              zip.file(file.name, file);
+          // Add each image file to the zip
+          for (const file of imageFiles) {
+            zip.file(file.name, file);
+            imagesAdded++;
+          }
+          
+          // Add uploaded logo file if it exists
+          if (logoFile && logoFile instanceof File) {
+            zip.file(`logo_uploaded_${logoFile.name}`, logoFile);
+            logosAdded++;
+          }
+          
+          // Add AI-generated logo if it exists
+          if (selectedLogo && selectedLogo.dataUrl) {
+            try {
+              // Parse mime type from data URL for proper extension
+              const mimeMatch = selectedLogo.dataUrl.match(/^data:([^;]+);?/);
+              const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+              
+              let extension = 'png'; // default
+              if (mimeType.includes('jpeg') || mimeType.includes('jpg')) extension = 'jpg';
+              else if (mimeType.includes('png')) extension = 'png';
+              else if (mimeType.includes('webp')) extension = 'webp';
+              else if (mimeType.includes('svg')) extension = 'svg';
+              
+              // Convert data URL to blob
+              const response = await fetch(selectedLogo.dataUrl);
+              const logoBlob = await response.blob();
+              
+              // Use blob type as fallback if data URL parsing failed
+              if (extension === 'png' && logoBlob.type && logoBlob.type !== 'image/png') {
+                if (logoBlob.type.includes('jpeg') || logoBlob.type.includes('jpg')) extension = 'jpg';
+                else if (logoBlob.type.includes('webp')) extension = 'webp';
+                else if (logoBlob.type.includes('svg')) extension = 'svg';
+              }
+              
+              zip.file(`logo_generated.${extension}`, logoBlob);
+              logosAdded++;
+            } catch (logoError) {
+              console.log('Could not include AI-generated logo in zip:', logoError);
             }
-            
-            // Generate and download the zip file
+          }
+          
+          const totalFiles = imagesAdded + logosAdded;
+          
+          // Only generate and download zip if files were actually added
+          if (totalFiles > 0) {
             const zipBlob = await zip.generateAsync({ type: "blob" });
             const zipUrl = URL.createObjectURL(zipBlob);
             const zipLink = document.createElement('a');
@@ -1387,14 +1429,24 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             document.body.removeChild(zipLink);
             URL.revokeObjectURL(zipUrl);
             
+            // Create descriptive message based on what was included
+            let description = "Your creative brief PDF and ";
+            if (imagesAdded > 0 && logosAdded > 0) {
+              description += `${imagesAdded} image${imagesAdded > 1 ? 's' : ''} and ${logosAdded} logo${logosAdded > 1 ? 's' : ''} zip have been exported.`;
+            } else if (imagesAdded > 0) {
+              description += `${imagesAdded} image${imagesAdded > 1 ? 's' : ''} zip have been exported.`;
+            } else {
+              description += `${logosAdded} logo${logosAdded > 1 ? 's' : ''} zip have been exported.`;
+            }
+            
             toast({
               title: "Files Downloaded!",
-              description: `Your creative brief PDF and ${imageFiles.length} image${imageFiles.length > 1 ? 's' : ''} zip have been exported.`
+              description: description
             });
           } else {
             toast({
               title: "PDF Downloaded!",
-              description: "Your creative brief has been exported as a PDF. No images were found to include in a zip file."
+              description: "Your creative brief has been exported as a PDF. No images or logos were available to include in a zip file."
             });
           }
         } else {
