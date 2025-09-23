@@ -1435,7 +1435,12 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                       'Search Functionality', 
                       'Contact Form',
                       'Contact Form with Conditional Logic',
-                      'Blog / News Section'
+                      'Blog / News Section',
+                      'Photo Galleries / Sliders',
+                      'Video Backgrounds / Embeds',
+                      'Podcast / Audio Player',
+                      'Resource Library (PDFs, Whitepapers)',
+                      'Download Center'
                     ].map((feature) => (
                       <div key={feature} className="flex items-center space-x-3">
                         <Checkbox
