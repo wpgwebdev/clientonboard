@@ -2051,17 +2051,19 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                       <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                         <FormControl>
                           <Checkbox
-                            checked={field.value}
+                            checked={field.value || false}
                             onCheckedChange={(checked) => {
-                              field.onChange(checked === true);
-                              setUserAccountsMembership(prev => ({ ...prev, registrationLogin: checked === true }));
+                              const boolValue = checked === true;
+                              field.onChange(boolValue);
+                              setUserAccountsMembership(prev => ({ ...prev, registrationLogin: boolValue }));
+                              membershipForm.setValue("registrationLogin", boolValue);
                             }}
                             data-testid="checkbox-registration-login"
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <FormLabel>
-                            Enable User Registration & Login
+                            User Registration & Login
                           </FormLabel>
                           <FormDescription>
                             Allow users to create accounts and log in to your website
@@ -2082,8 +2084,10 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                             <Checkbox
                               checked={field.value}
                               onCheckedChange={(checked) => {
-                                field.onChange(checked === true);
-                                setUserAccountsMembership(prev => ({ ...prev, userDashboardNeeded: checked === true }));
+                                const boolValue = checked === true;
+                                field.onChange(boolValue);
+                                setUserAccountsMembership(prev => ({ ...prev, userDashboardNeeded: boolValue }));
+                                membershipForm.setValue("userDashboardNeeded", boolValue);
                               }}
                               data-testid="checkbox-user-dashboard"
                             />
