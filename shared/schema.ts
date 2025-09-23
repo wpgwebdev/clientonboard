@@ -379,10 +379,40 @@ export const projectSubmissionSchema = z.object({
 export type ProjectSubmission = z.infer<typeof projectSubmissionSchema>;
 
 // Feature Selection Schemas
+// Project Submissions Table
+export const projectSubmissions = pgTable("project_submissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  businessName: text("business_name").notNull(),
+  businessDescription: text("business_description").notNull(),
+  selectedSiteType: text("selected_site_type").notNull(),
+  pages: json("pages").$type<Array<{id: string; name: string; path: string; required?: boolean}>>().notNull(),
+  logoDecision: text("logo_decision"),
+  logoFile: text("logo_file"), // Base64 or file reference
+  selectedLogo: json("selected_logo").$type<GeneratedLogo>(),
+  contentPreferences: json("content_preferences").$type<ContentPreferences>().notNull(),
+  generatedContent: json("generated_content").$type<GeneratedContent[]>().notNull(),
+  crmIntegration: json("crm_integration").$type<CrmIntegration>(),
+  userAccountsMembership: json("user_accounts_membership").$type<UserAccountsMembership>(),
+  imageRequirements: json("image_requirements").$type<ImageRequirements>().notNull(),
+  designPreferences: json("design_preferences").$type<{
+    selectedStyle: string;
+    preferredFont?: string;
+    primaryColor?: string;
+    secondaryColor?: string;
+    accentColor?: string;
+    backgroundColor?: string;
+    textColor?: string;
+    inspirationLinks: string[];
+    additionalNotes: string;
+  }>().notNull(),
+  submittedAt: timestamp("submitted_at").defaultNow()
+});
+
 export const featureSelections = pgTable("feature_selections", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id),
-  projectId: varchar("project_id"),
+  projectId: varchar("project_id").references(() => projectSubmissions.id),
   selectedFeatures: json("selected_features").$type<string[]>().notNull(),
   priority: json("priority").$type<{ [key: string]: 'low' | 'medium' | 'high' }>(),
   notes: text("notes"),
@@ -394,6 +424,11 @@ export const featureSelectionSchema = z.object({
   selectedFeatures: z.array(z.string()),
   priority: z.record(z.enum(['low', 'medium', 'high'])).optional(),
   notes: z.string().optional()
+});
+
+export const insertProjectSubmissionSchema = createInsertSchema(projectSubmissions).omit({
+  id: true,
+  submittedAt: true
 });
 
 export const insertFeatureSelectionSchema = createInsertSchema(featureSelections, {
@@ -482,5 +517,7 @@ export const websiteFeatures = {
 export type FeatureSelection = z.infer<typeof featureSelectionSchema>;
 export type InsertFeatureSelection = z.infer<typeof insertFeatureSelectionSchema>;
 export type FeatureSelectionRow = typeof featureSelections.$inferSelect;
+export type InsertProjectSubmission = z.infer<typeof insertProjectSubmissionSchema>;
+export type ProjectSubmissionRow = typeof projectSubmissions.$inferSelect;
 export type WebsiteFeatureCategory = keyof typeof websiteFeatures;
 export type WebsiteFeature = typeof websiteFeatures[WebsiteFeatureCategory][number];
