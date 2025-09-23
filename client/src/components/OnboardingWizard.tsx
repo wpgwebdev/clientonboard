@@ -771,8 +771,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     console.log('Exporting creative brief as PDF...');
     
     try {
-      // Import jsPDF dynamically
+      // Import libraries dynamically
       const { jsPDF } = await import('jspdf');
+      const JSZip = (await import('jszip')).default;
         const doc = new jsPDF();
         let yPosition = 20;
         const lineHeight = 8;
@@ -1351,13 +1352,57 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         doc.setFont('helvetica', 'italic');
         doc.text(`Generated on ${currentDate}`, margin, 280);
 
+        // Helper function to sanitize filenames for cross-platform compatibility
+        const sanitizeFilename = (filename: string) => {
+          return filename.replace(/[\\/:*?"<>|]/g, '_').trim();
+        };
+
+        const sanitizedBusinessName = sanitizeFilename(businessName || 'Creative Brief');
+
         // Save the PDF
-        doc.save(`${businessName || 'Creative Brief'}_${currentDate.replace(/\//g, '-')}.pdf`);
+        doc.save(`${sanitizedBusinessName}_${currentDate.replace(/\//g, '-')}.pdf`);
         
-        toast({
-          title: "PDF Downloaded!",
-          description: "Your creative brief has been exported as a PDF."
-        });
+        // Create and download zip file with uploaded images if any exist
+        if (mediaFiles && mediaFiles.length > 0) {
+          // Filter to only include image files
+          const imageFiles = mediaFiles.filter(file => file.type.startsWith('image/'));
+          
+          if (imageFiles.length > 0) {
+            console.log('Creating zip file with uploaded images...');
+            const zip = new JSZip();
+            
+            // Add each image file to the zip
+            for (const file of imageFiles) {
+              zip.file(file.name, file);
+            }
+            
+            // Generate and download the zip file
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            const zipUrl = URL.createObjectURL(zipBlob);
+            const zipLink = document.createElement('a');
+            zipLink.href = zipUrl;
+            zipLink.download = `${sanitizedBusinessName}_Images_${currentDate.replace(/\//g, '-')}.zip`;
+            document.body.appendChild(zipLink);
+            zipLink.click();
+            document.body.removeChild(zipLink);
+            URL.revokeObjectURL(zipUrl);
+            
+            toast({
+              title: "Files Downloaded!",
+              description: `Your creative brief PDF and ${imageFiles.length} image${imageFiles.length > 1 ? 's' : ''} zip have been exported.`
+            });
+          } else {
+            toast({
+              title: "PDF Downloaded!",
+              description: "Your creative brief has been exported as a PDF. No images were found to include in a zip file."
+            });
+          }
+        } else {
+          toast({
+            title: "PDF Downloaded!",
+            description: "Your creative brief has been exported as a PDF."
+          });
+        }
     } catch (error) {
       console.error('PDF Export Error:', error);
       toast({
