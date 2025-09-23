@@ -1297,6 +1297,68 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           doc.text(`Design Style: ${designPreferences.selectedStyle}`, margin, yPosition);
           yPosition += lineHeight;
           
+          // Preferred Font
+          if (designPreferences.preferredFont) {
+            doc.text(`Preferred Font: ${designPreferences.preferredFont}`, margin, yPosition);
+            yPosition += lineHeight;
+          }
+          
+          // Color Scheme
+          const hasColors = designPreferences.primaryColor || designPreferences.secondaryColor || 
+                          designPreferences.accentColor || designPreferences.backgroundColor || 
+                          designPreferences.textColor;
+          
+          if (hasColors) {
+            doc.text('Color Scheme:', margin, yPosition);
+            yPosition += lineHeight;
+            
+            // Primary Color with visual preview
+            if (designPreferences.primaryColor) {
+              doc.text(`• Primary: ${designPreferences.primaryColor}`, margin + 5, yPosition);
+              // Add a small colored rectangle
+              doc.setFillColor(designPreferences.primaryColor);
+              doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
+              yPosition += lineHeight;
+            }
+            
+            // Secondary Color with visual preview
+            if (designPreferences.secondaryColor) {
+              doc.text(`• Secondary: ${designPreferences.secondaryColor}`, margin + 5, yPosition);
+              doc.setFillColor(designPreferences.secondaryColor);
+              doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
+              yPosition += lineHeight;
+            }
+            
+            // Accent Color with visual preview
+            if (designPreferences.accentColor) {
+              doc.text(`• Accent: ${designPreferences.accentColor}`, margin + 5, yPosition);
+              doc.setFillColor(designPreferences.accentColor);
+              doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
+              yPosition += lineHeight;
+            }
+            
+            // Background Color with visual preview
+            if (designPreferences.backgroundColor) {
+              doc.text(`• Background: ${designPreferences.backgroundColor}`, margin + 5, yPosition);
+              doc.setFillColor(designPreferences.backgroundColor);
+              doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
+              // Add border for light backgrounds
+              doc.setDrawColor(200, 200, 200);
+              doc.rect(margin + 85, yPosition - 4, 8, 6, 'S');
+              yPosition += lineHeight;
+            }
+            
+            // Text Color with visual preview
+            if (designPreferences.textColor) {
+              doc.text(`• Text: ${designPreferences.textColor}`, margin + 5, yPosition);
+              doc.setFillColor(designPreferences.textColor);
+              doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
+              yPosition += lineHeight;
+            }
+            
+            yPosition += 3; // Add spacing after colors
+          }
+          
           if (designPreferences.inspirationLinks.length > 0) {
             doc.text('Inspiration Links:', margin, yPosition);
             yPosition += lineHeight;
