@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Sparkles, CheckCircle, Download, Upload, Palette, Check, Wand2, Loader2, RefreshCw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, CheckCircle, Download, Upload, Palette, Check, Wand2, Loader2, RefreshCw, Plus } from "lucide-react";
 import ProgressBar, { type Step } from "./ProgressBar";
 import SiteTypeSelector from "./SiteTypeSelector";
 import SitemapBuilder, { type Page } from "./SitemapBuilder";
@@ -27,6 +27,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -481,9 +482,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
   // User Accounts & Membership state
   const [userAccountsMembership, setUserAccountsMembership] = useState<UserAccountsMembership>({
-    registrationLogin: false,
-    roleBasedAccess: [],
-    roleActionsResponsibilities: '',
+    predefinedRoles: [],
+    customRoles: [],
     membershipSubscriptionSystem: false,
     membershipDetails: ''
   });
@@ -2037,101 +2037,124 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
               <Form {...membershipForm}>
                 <form onSubmit={membershipForm.handleSubmit(onMembershipSubmit)} className="space-y-6">
                   
-                  {/* Registration & Login */}
+                  {/* Predefined Roles */}
                   <FormField
                     control={membershipForm.control}
-                    name="registrationLogin"
+                    name="predefinedRoles"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={(checked) => {
-                              // Update form state
-                              field.onChange(checked);
-                              // Also update component state to ensure consistency
-                              setUserAccountsMembership(prev => ({
-                                ...prev,
-                                registrationLogin: !!checked
-                              }));
-                            }}
-                            data-testid="checkbox-registration-login"
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Registration & Login</FormLabel>
-                          <FormDescription>
-                            Allow users to create accounts and log in to your website
-                          </FormDescription>
+                      <FormItem>
+                        <FormLabel>Predefined User Roles</FormLabel>
+                        <FormDescription>
+                          Select the standard user roles that will be available on your website
+                        </FormDescription>
+                        <div className="flex gap-4">
+                          {(['admin', 'member', 'guest'] as const).map((role) => (
+                            <FormItem key={role} className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(role)}
+                                  onCheckedChange={(checked) => {
+                                    const currentValue = field.value || [];
+                                    if (checked) {
+                                      field.onChange([...currentValue, role]);
+                                    } else {
+                                      field.onChange(currentValue.filter((v) => v !== role));
+                                    }
+                                  }}
+                                  data-testid={`checkbox-role-${role}`}
+                                />
+                              </FormControl>
+                              <FormLabel className="capitalize">
+                                {role}
+                              </FormLabel>
+                            </FormItem>
+                          ))}
                         </div>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  {/* Role-Based Access - Only show if Registration & Login is enabled */}
-                  {userAccountsMembership.registrationLogin && (
-                    <FormField
-                      control={membershipForm.control}
-                      name="roleBasedAccess"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Role-Based Access</FormLabel>
-                          <FormDescription>
-                            Select the user roles that will be available on your website
-                          </FormDescription>
-                          <div className="flex gap-4">
-                            {(['admin', 'member', 'guest'] as const).map((role) => (
-                              <FormItem key={role} className="flex flex-row items-start space-x-3 space-y-0">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(role)}
-                                    onCheckedChange={(checked) => {
-                                      const currentValue = field.value || [];
-                                      if (checked) {
-                                        field.onChange([...currentValue, role]);
-                                      } else {
-                                        field.onChange(currentValue.filter((v) => v !== role));
-                                      }
-                                    }}
-                                    data-testid={`checkbox-role-${role}`}
-                                  />
-                                </FormControl>
-                                <FormLabel className="capitalize">
-                                  {role}
-                                </FormLabel>
-                              </FormItem>
-                            ))}
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  {/* Role Actions & Responsibilities */}
-                  {membershipForm.watch("registrationLogin") && (
-                    <FormField
-                      control={membershipForm.control}
-                      name="roleActionsResponsibilities"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Role Actions & Responsibilities</FormLabel>
-                          <FormDescription>
-                            Describe what actions each role can perform and their responsibilities
-                          </FormDescription>
-                          <FormControl>
-                            <Textarea
-                              placeholder="For example: Admins can manage all content and users. Members can create and edit their own content. Guests can view public content only..."
-                              {...field}
-                              rows={4}
-                              data-testid="textarea-role-actions"
+                  {/* Custom Roles */}
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Custom User Roles</h4>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Add custom roles specific to your organization with detailed descriptions
+                      </p>
+                    </div>
+                    
+                    {userAccountsMembership.customRoles.map((role, index) => (
+                      <div key={index} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                          <h5 className="text-sm font-medium">Custom Role {index + 1}</h5>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const newCustomRoles = userAccountsMembership.customRoles.filter((_, i) => i !== index);
+                              setUserAccountsMembership(prev => ({ ...prev, customRoles: newCustomRoles }));
+                              membershipForm.setValue("customRoles", newCustomRoles);
+                            }}
+                            data-testid={`button-remove-custom-role-${index}`}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                        
+                        <div className="grid gap-3">
+                          <div>
+                            <Label htmlFor={`custom-role-name-${index}`}>Role Name</Label>
+                            <Input
+                              id={`custom-role-name-${index}`}
+                              placeholder="e.g., Editor, Moderator, Supervisor"
+                              value={role.name}
+                              onChange={(e) => {
+                                const newCustomRoles = [...userAccountsMembership.customRoles];
+                                newCustomRoles[index] = { ...role, name: e.target.value };
+                                setUserAccountsMembership(prev => ({ ...prev, customRoles: newCustomRoles }));
+                                membershipForm.setValue("customRoles", newCustomRoles);
+                              }}
+                              data-testid={`input-custom-role-name-${index}`}
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor={`custom-role-description-${index}`}>Role Description & Responsibilities</Label>
+                            <Textarea
+                              id={`custom-role-description-${index}`}
+                              placeholder="Describe what this role can do, their responsibilities, and any special permissions..."
+                              rows={3}
+                              value={role.description || ''}
+                              onChange={(e) => {
+                                const newCustomRoles = [...userAccountsMembership.customRoles];
+                                newCustomRoles[index] = { ...role, description: e.target.value };
+                                setUserAccountsMembership(prev => ({ ...prev, customRoles: newCustomRoles }));
+                                membershipForm.setValue("customRoles", newCustomRoles);
+                              }}
+                              data-testid={`textarea-custom-role-description-${index}`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const newCustomRole = { name: '', description: '' };
+                        const newCustomRoles = [...userAccountsMembership.customRoles, newCustomRole];
+                        setUserAccountsMembership(prev => ({ ...prev, customRoles: newCustomRoles }));
+                        membershipForm.setValue("customRoles", newCustomRoles);
+                      }}
+                      data-testid="button-add-custom-role"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Custom Role
+                    </Button>
+                  </div>
 
                   {/* Membership/Subscription System */}
                   <FormField
