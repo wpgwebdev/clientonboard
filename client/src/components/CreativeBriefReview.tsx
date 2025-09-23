@@ -46,9 +46,8 @@ export interface CreativeBriefData {
     selectedAdvancedFeatures?: string[];
   };
   userAccountsMembership?: {
-    registrationLogin: boolean;
-    roleBasedAccess: string[];
-    roleActionsResponsibilities?: string;
+    predefinedRoles: string[];
+    customRoles: { name: string; description?: string }[];
     membershipSubscriptionSystem: boolean;
     membershipDetails?: string;
   };
@@ -672,7 +671,7 @@ export default function CreativeBriefReview({
             )}
 
             {/* User Accounts & Membership */}
-            {briefData.userAccountsMembership && (briefData.userAccountsMembership.registrationLogin || briefData.userAccountsMembership.membershipSubscriptionSystem) && (
+            {briefData.userAccountsMembership && ((briefData.userAccountsMembership.predefinedRoles?.length > 0 || briefData.userAccountsMembership.customRoles?.length > 0) || briefData.userAccountsMembership.membershipSubscriptionSystem) && (
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-semibold">User Accounts & Membership</h4>
@@ -687,19 +686,16 @@ export default function CreativeBriefReview({
                 </div>
                 <div className="space-y-4">
                   
-                  {briefData.userAccountsMembership.registrationLogin && (
+                  {(briefData.userAccountsMembership.predefinedRoles?.length > 0 || briefData.userAccountsMembership.customRoles?.length > 0) && (
                     <div className="border-l-2 border-primary pl-3">
-                      <p className="text-sm font-medium">Registration & Login</p>
-                      <Badge variant="secondary" className="text-xs mt-2">
-                        User Registration Enabled
-                      </Badge>
+                      <p className="text-sm font-medium">User Roles</p>
                       
-                      {briefData.userAccountsMembership.roleBasedAccess?.length > 0 && (
+                      {briefData.userAccountsMembership.predefinedRoles?.length > 0 && (
                         <div className="mt-3">
-                          <p className="text-xs text-muted-foreground mb-2">Role-Based Access:</p>
+                          <p className="text-xs text-muted-foreground mb-2">Predefined Roles:</p>
                           <div className="flex flex-wrap gap-2">
-                            {briefData.userAccountsMembership.roleBasedAccess.map((role, index) => (
-                              <Badge key={`role-${index}`} variant="outline" className="text-xs capitalize">
+                            {briefData.userAccountsMembership.predefinedRoles.map((role, index) => (
+                              <Badge key={`predefined-role-${index}`} variant="outline" className="text-xs capitalize">
                                 {role}
                               </Badge>
                             ))}
@@ -707,13 +703,24 @@ export default function CreativeBriefReview({
                         </div>
                       )}
                       
-                      {briefData.userAccountsMembership.roleActionsResponsibilities && (
+                      {briefData.userAccountsMembership.customRoles?.length > 0 && (
                         <div className="mt-3">
-                          <p className="text-xs text-muted-foreground mb-2">Role Actions & Responsibilities:</p>
-                          <div className="p-3 bg-muted rounded-md">
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                              {briefData.userAccountsMembership.roleActionsResponsibilities}
-                            </p>
+                          <p className="text-xs text-muted-foreground mb-2">Custom Roles:</p>
+                          <div className="space-y-3">
+                            {briefData.userAccountsMembership.customRoles.map((role, index) => (
+                              <div key={`custom-role-${index}`} className="p-3 bg-muted rounded-md">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge variant="secondary" className="text-xs">
+                                    {role.name}
+                                  </Badge>
+                                </div>
+                                {role.description && (
+                                  <p className="text-sm text-muted-foreground">
+                                    {role.description}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
