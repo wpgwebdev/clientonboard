@@ -32,6 +32,7 @@ export interface CreativeBriefData {
   fonts: string[];
   siteType: string;
   pages: { name: string; path: string }[];
+  coreWebsiteFeatures: string[];
   pageContent: Record<string, string>;
   crmIntegration?: {
     selectedCrms: string[];
@@ -462,6 +463,38 @@ export default function CreativeBriefReview({
             </div>
           </CardContent>
         </Card>
+
+        {/* Core Website Features */}
+        {briefData.coreWebsiteFeatures && briefData.coreWebsiteFeatures.length > 0 && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                Core Website Features
+              </CardTitle>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onEditSection('sitemap')}
+                data-testid="button-edit-core-features"
+              >
+                Edit
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div>
+                <p className="text-sm font-medium mb-3">Selected Features ({briefData.coreWebsiteFeatures.length}):</p>
+                <div className="flex flex-wrap gap-2">
+                  {briefData.coreWebsiteFeatures.map((feature, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {feature}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Design Style */}
         <Card>

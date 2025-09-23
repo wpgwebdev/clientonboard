@@ -491,6 +491,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     membershipDetails: ''
   });
 
+  // Core Website Features state
+  const [coreWebsiteFeatures, setCoreWebsiteFeatures] = useState<string[]>([]);
+
   // Project submission state
   const [isProjectSubmitted, setIsProjectSubmitted] = useState(false);
 
@@ -1409,12 +1412,51 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             <CardHeader>
               <CardTitle>Site Map Builder</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-8">
               <SitemapBuilder
                 pages={pages}
                 onPagesUpdate={setPages}
                 suggestedPages={suggestedPages}
               />
+              
+              {/* Core Website Features Section */}
+              <div className="border-t pt-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Core Website Features</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Select the essential features you'd like to include on your website
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[
+                      'Newsletter Signup',
+                      'Search Functionality', 
+                      'Contact Form',
+                      'Contact Form with Conditional Logic',
+                      'Blog / News Section'
+                    ].map((feature) => (
+                      <div key={feature} className="flex items-center space-x-3">
+                        <Checkbox
+                          checked={coreWebsiteFeatures.includes(feature)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setCoreWebsiteFeatures(prev => [...prev, feature]);
+                            } else {
+                              setCoreWebsiteFeatures(prev => prev.filter(f => f !== feature));
+                            }
+                          }}
+                          data-testid={`checkbox-core-feature-${feature.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+                        />
+                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          {feature}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         );
@@ -2655,6 +2697,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           fonts: designPreferences.preferredFont ? [designPreferences.preferredFont] : [],
           siteType: selectedSiteType,
           pages: pages.map(p => ({ name: p.name, path: p.path })),
+          coreWebsiteFeatures,
           pageContent: {
             'Home': 'Welcome to ' + businessName + '. ' + businessDescription,
             'About': 'Learn more about our story and what drives us.',
