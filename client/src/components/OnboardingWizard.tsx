@@ -482,6 +482,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
   // User Accounts & Membership state
   const [userAccountsMembership, setUserAccountsMembership] = useState<UserAccountsMembership>({
+    registrationLogin: false,
+    userDashboardNeeded: false,
+    userDashboardFeatures: '',
     predefinedRoles: [],
     customRoles: [],
     membershipSubscriptionSystem: false,
@@ -2040,6 +2043,92 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
               <Form {...membershipForm}>
                 <form onSubmit={membershipForm.handleSubmit(onMembershipSubmit)} className="space-y-6">
                   
+                  {/* Registration & Login */}
+                  <FormField
+                    control={membershipForm.control}
+                    name="registrationLogin"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked === true);
+                              setUserAccountsMembership(prev => ({ ...prev, registrationLogin: checked === true }));
+                            }}
+                            data-testid="checkbox-registration-login"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>
+                            Enable User Registration & Login
+                          </FormLabel>
+                          <FormDescription>
+                            Allow users to create accounts and log in to your website
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* User Dashboard */}
+                  <div className="space-y-4">
+                    <FormField
+                      control={membershipForm.control}
+                      name="userDashboardNeeded"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={(checked) => {
+                                field.onChange(checked === true);
+                                setUserAccountsMembership(prev => ({ ...prev, userDashboardNeeded: checked === true }));
+                              }}
+                              data-testid="checkbox-user-dashboard"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              User Dashboard Required
+                            </FormLabel>
+                            <FormDescription>
+                              Provide users with a personalized dashboard area
+                            </FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    {userAccountsMembership.userDashboardNeeded && (
+                      <FormField
+                        control={membershipForm.control}
+                        name="userDashboardFeatures"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Dashboard Features & Functionality</FormLabel>
+                            <FormDescription>
+                              Describe what features and information users should see in their dashboard
+                            </FormDescription>
+                            <FormControl>
+                              <Textarea
+                                placeholder="e.g., Profile management, order history, download center, account settings, notification preferences, usage analytics, subscription management..."
+                                rows={4}
+                                {...field}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setUserAccountsMembership(prev => ({ ...prev, userDashboardFeatures: e.target.value }));
+                                }}
+                                data-testid="textarea-dashboard-features"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </div>
+
                   {/* Predefined Roles */}
                   <FormField
                     control={membershipForm.control}

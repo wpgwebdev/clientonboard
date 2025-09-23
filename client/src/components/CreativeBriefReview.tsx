@@ -46,6 +46,9 @@ export interface CreativeBriefData {
     selectedAdvancedFeatures?: string[];
   };
   userAccountsMembership?: {
+    registrationLogin: boolean;
+    userDashboardNeeded: boolean;
+    userDashboardFeatures?: string;
     predefinedRoles: string[];
     customRoles: { name: string; description?: string }[];
     membershipSubscriptionSystem: boolean;
@@ -671,7 +674,7 @@ export default function CreativeBriefReview({
             )}
 
             {/* User Accounts & Membership */}
-            {briefData.userAccountsMembership && ((briefData.userAccountsMembership.predefinedRoles?.length > 0 || briefData.userAccountsMembership.customRoles?.length > 0) || briefData.userAccountsMembership.membershipSubscriptionSystem) && (
+            {briefData.userAccountsMembership && (briefData.userAccountsMembership.registrationLogin || briefData.userAccountsMembership.userDashboardNeeded || (briefData.userAccountsMembership.predefinedRoles?.length > 0 || briefData.userAccountsMembership.customRoles?.length > 0) || briefData.userAccountsMembership.membershipSubscriptionSystem) && (
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-semibold">User Accounts & Membership</h4>
@@ -685,6 +688,48 @@ export default function CreativeBriefReview({
                   </Button>
                 </div>
                 <div className="space-y-4">
+
+                  {/* Registration & Login */}
+                  {briefData.userAccountsMembership.registrationLogin && (
+                    <div className="border-l-2 border-primary pl-3">
+                      <p className="text-sm font-medium">User Registration & Login</p>
+                      <Badge 
+                        className="text-xs mt-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                        data-testid="status-registration-login"
+                      >
+                        Registration & Login Enabled
+                      </Badge>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Users will be able to create accounts and log in to access personalized features
+                      </p>
+                    </div>
+                  )}
+
+                  {/* User Dashboard */}
+                  {briefData.userAccountsMembership.userDashboardNeeded && (
+                    <div className="border-l-2 border-primary pl-3">
+                      <p className="text-sm font-medium">User Dashboard</p>
+                      <Badge 
+                        className="text-xs mt-2 bg-gradient-to-r from-purple-500 to-violet-500 text-white"
+                        data-testid="status-user-dashboard"
+                      >
+                        Dashboard Required
+                      </Badge>
+                      {briefData.userAccountsMembership.userDashboardFeatures && (
+                        <div className="mt-3">
+                          <p className="text-xs text-muted-foreground mb-2">Dashboard Features:</p>
+                          <div className="p-3 bg-muted rounded-md">
+                            <p 
+                              className="text-sm text-muted-foreground whitespace-pre-wrap"
+                              data-testid="text-dashboard-features"
+                            >
+                              {briefData.userAccountsMembership.userDashboardFeatures}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   
                   {(briefData.userAccountsMembership.predefinedRoles?.length > 0 || briefData.userAccountsMembership.customRoles?.length > 0) && (
                     <div className="border-l-2 border-primary pl-3">

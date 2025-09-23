@@ -287,6 +287,9 @@ export const roleSchema = z.object({
 
 // User Accounts & Membership Schema
 export const userAccountsMembershipSchema = z.object({
+  registrationLogin: z.boolean().default(false),
+  userDashboardNeeded: z.boolean().default(false),
+  userDashboardFeatures: z.string().optional(),
   predefinedRoles: z.array(z.enum(['admin', 'member', 'guest'])).optional().default([]),
   customRoles: z.array(roleSchema).optional().default([]),
   membershipSubscriptionSystem: z.boolean().default(false),
@@ -298,6 +301,15 @@ export const userAccountsMembershipSchema = z.object({
       code: 'custom',
       message: 'Membership details are required when Membership/Subscription System is enabled',
       path: ['membershipDetails']
+    });
+  }
+  
+  // If user dashboard is needed, dashboard features are required
+  if (data.userDashboardNeeded && (!data.userDashboardFeatures || data.userDashboardFeatures.trim().length === 0)) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Dashboard features are required when User Dashboard is needed',
+      path: ['userDashboardFeatures']
     });
   }
   
