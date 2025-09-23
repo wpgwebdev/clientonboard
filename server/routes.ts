@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
-import { logoGenerationRequestSchema, type GeneratedLogo, contentGenerationRequestSchema, pageRegenerationRequestSchema, projectSubmissionSchema, type ProjectSubmission, featureSelectionSchema, insertFeatureSelectionSchema } from "../shared/schema";
+import { logoGenerationRequestSchema, type GeneratedLogo, contentGenerationRequestSchema, pageRegenerationRequestSchema, projectSubmissionSchema, type ProjectSubmission, featureSelectionSchema, insertFeatureSelectionSchema, insertProjectSubmissionSchema } from "../shared/schema";
 
 // OpenAI integration - the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -729,7 +729,124 @@ Generate complete, ready-to-use web copy with proper structure, headings, and fu
     }
   });
 
-  // Project submission endpoint
+  // Project submission management endpoints
+  
+  // Create new project submission (onboarding progress)
+  app.post("/api/projects", async (req, res) => {
+    try {
+      // Validate request body
+      const validationResult = insertProjectSubmissionSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid request data", 
+          details: validationResult.error.errors 
+        });
+      }
+      
+      const projectSubmission = await storage.createProjectSubmission(validationResult.data);
+      
+      res.json(projectSubmission);
+      
+    } catch (error: any) {
+      console.error("Error creating project submission:", error);
+      res.status(500).json({ 
+        error: "Failed to save project submission", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Update existing project submission (onboarding progress)
+  app.put("/api/projects/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Validate request body
+      const validationResult = insertProjectSubmissionSchema.partial().safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid request data", 
+          details: validationResult.error.errors 
+        });
+      }
+      
+      const updatedProject = await storage.updateProjectSubmission(id, validationResult.data);
+      
+      if (!updatedProject) {
+        return res.status(404).json({ error: "Project submission not found" });
+      }
+      
+      res.json(updatedProject);
+      
+    } catch (error: any) {
+      console.error("Error updating project submission:", error);
+      res.status(500).json({ 
+        error: "Failed to update project submission", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Get project submission by ID
+  app.get("/api/projects/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const project = await storage.getProjectSubmission(id);
+      
+      if (!project) {
+        return res.status(404).json({ error: "Project submission not found" });
+      }
+      
+      res.json(project);
+      
+    } catch (error: any) {
+      console.error("Error fetching project submission:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch project submission", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Get project submission by user ID
+  app.get("/api/projects/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const project = await storage.getProjectSubmissionByUserId(userId);
+      
+      if (!project) {
+        return res.status(404).json({ error: "No project submission found for this user" });
+      }
+      
+      res.json(project);
+      
+    } catch (error: any) {
+      console.error("Error fetching project submission by user:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch project submission", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // List all project submissions (admin use)
+  app.get("/api/projects", async (req, res) => {
+    try {
+      const projects = await storage.listProjectSubmissions();
+      res.json(projects);
+      
+    } catch (error: any) {
+      console.error("Error listing project submissions:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch project submissions", 
+        message: error.message 
+      });
+    }
+  });
+
+  // Project submission endpoint (final submission)
   app.post("/api/project/submit", async (req, res) => {
     try {
       // Validate the submission data (excluding submittedAt since storage will add it)
