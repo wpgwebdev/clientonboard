@@ -2612,26 +2612,31 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Upload Your Images</h3>
                 <p className="text-sm text-muted-foreground">
-                  Upload any logos, photos, or other media files you already have.
+                  Upload any logos, photos, or other media files you already have. You can select multiple files at once.
                 </p>
                 <FileUpload
-                  onFileSelect={(file) => {
-                    setMediaFiles(prev => [...prev, file]);
-                    console.log('Media file uploaded:', file.name);
+                  multiple={true}
+                  onFilesSelect={(files) => {
+                    setMediaFiles(prev => [...prev, ...files]);
+                    console.log('Media files uploaded:', files.map(f => f.name));
                     toast({
-                      title: "File Uploaded",
-                      description: `${file.name} has been uploaded successfully.`
+                      title: "Files Uploaded",
+                      description: `${files.length} file${files.length > 1 ? 's' : ''} uploaded successfully.`
                     });
                   }}
-                  onFileRemove={() => {
-                    setMediaFiles([]);
-                    console.log('Media file removed');
-                    toast({
-                      title: "File Removed",
-                      description: "Media file has been removed."
+                  onFileRemoveAt={(index) => {
+                    setMediaFiles(prev => {
+                      const removedFile = prev[index];
+                      const updatedFiles = prev.filter((_, i) => i !== index);
+                      console.log('Media file removed:', removedFile?.name);
+                      toast({
+                        title: "File Removed",
+                        description: `${removedFile?.name} has been removed.`
+                      });
+                      return updatedFiles;
                     });
                   }}
-                  currentFile={mediaFiles[0]}
+                  currentFiles={mediaFiles}
                   acceptedTypes="image/*,video/*"
                   maxSize={50}
                   placeholder="Upload logos, photos, videos, or other media files"
