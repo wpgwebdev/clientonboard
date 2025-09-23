@@ -951,6 +951,334 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           yPosition += 5;
         }
 
+        // Integrations
+        if (crmIntegration && (crmIntegration.selectedCrms?.length > 0 || crmIntegration.selectedMarketingAutomation?.length > 0 || crmIntegration.selectedPaymentGateways?.length > 0 || crmIntegration.apiIntegrations?.trim() || crmIntegration.selectedAutomationPlatforms?.length > 0 || crmIntegration.selectedEngagementFeatures?.length > 0 || crmIntegration.selectedAdvancedFeatures?.length > 0 || crmIntegration.selectedECommerceFeatures?.length > 0)) {
+          if (yPosition > 220) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Integrations', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+
+          // CRM Platforms
+          if (crmIntegration.selectedCrms?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('CRM Platforms:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const crmDisplayNames: Record<string, string> = {
+              'salesforce': 'Salesforce',
+              'hubspot': 'HubSpot',
+              'zoho-crm': 'Zoho CRM',
+              'pipedrive': 'Pipedrive',
+              'microsoft-dynamics-365': 'Microsoft Dynamics 365',
+              'freshsales': 'Freshsales',
+              'ontraport': 'Ontraport',
+              'nimble': 'Nimble',
+              'nutshell': 'Nutshell',
+              'membrain': 'Membrain',
+              'sugarcrm': 'SugarCRM'
+            };
+            
+            crmIntegration.selectedCrms.forEach(crm => {
+              if (crm === 'custom') {
+                if (crmIntegration.customCrmNames && crmIntegration.customCrmNames.length > 0) {
+                  crmIntegration.customCrmNames.filter(name => name.trim()).forEach(customName => {
+                    doc.text(`• ${customName}`, margin + 5, yPosition);
+                    yPosition += lineHeight;
+                  });
+                }
+              } else {
+                doc.text(`• ${crmDisplayNames[crm] || crm}`, margin + 5, yPosition);
+                yPosition += lineHeight;
+              }
+            });
+            yPosition += 3;
+          }
+
+          // Marketing Automation
+          if (crmIntegration.selectedMarketingAutomation?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Marketing Automation:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const marketingDisplayNames: Record<string, string> = {
+              'klaviyo': 'Klaviyo',
+              'hubspot': 'HubSpot',
+              'activecampaign': 'ActiveCampaign',
+              'mailchimp': 'Mailchimp',
+              'brevo': 'Brevo',
+              'marketo-engage': 'Marketo Engage',
+              'pardot': 'Pardot'
+            };
+            
+            crmIntegration.selectedMarketingAutomation.forEach(platform => {
+              if (platform === 'custom') {
+                if (crmIntegration.customMarketingAutomationNames && crmIntegration.customMarketingAutomationNames.length > 0) {
+                  crmIntegration.customMarketingAutomationNames.filter(name => name.trim()).forEach(customName => {
+                    doc.text(`• ${customName}`, margin + 5, yPosition);
+                    yPosition += lineHeight;
+                  });
+                }
+              } else {
+                doc.text(`• ${marketingDisplayNames[platform] || platform}`, margin + 5, yPosition);
+                yPosition += lineHeight;
+              }
+            });
+            yPosition += 3;
+          }
+
+          // Payment Gateways
+          if (crmIntegration.selectedPaymentGateways?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Payment Gateways:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const paymentDisplayNames: Record<string, string> = {
+              'stripe': 'Stripe',
+              'paypal': 'PayPal',
+              'square': 'Square',
+              'authorize-net': 'Authorize.net',
+              'amazon-pay': 'Amazon Pay',
+              'apple-pay': 'Apple Pay',
+              'bank-transfer': 'Bank Transfer'
+            };
+            
+            crmIntegration.selectedPaymentGateways.forEach(gateway => {
+              if (gateway === 'custom') {
+                if (crmIntegration.customPaymentGatewayNames && crmIntegration.customPaymentGatewayNames.length > 0) {
+                  crmIntegration.customPaymentGatewayNames.filter(name => name.trim()).forEach(customName => {
+                    doc.text(`• ${customName}`, margin + 5, yPosition);
+                    yPosition += lineHeight;
+                  });
+                }
+              } else {
+                doc.text(`• ${paymentDisplayNames[gateway] || gateway}`, margin + 5, yPosition);
+                yPosition += lineHeight;
+              }
+            });
+            yPosition += 3;
+          }
+
+          // API Integrations
+          if (crmIntegration.apiIntegrations?.trim()) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('API Integrations:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            const apiLines = doc.splitTextToSize(crmIntegration.apiIntegrations, maxWidth);
+            doc.text(apiLines, margin, yPosition);
+            yPosition += lineHeight * apiLines.length + 3;
+          }
+
+          // Automation Platforms
+          if (crmIntegration.selectedAutomationPlatforms?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Automation Platforms:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const automationDisplayNames: Record<string, string> = {
+              'zapier': 'Zapier',
+              'make-integromat': 'Make (Integromat)',
+              'microsoft-power-automate': 'Microsoft Power Automate',
+              'ifttt': 'IFTTT',
+              'pipedream': 'Pipedream',
+              'workato': 'Workato'
+            };
+            
+            crmIntegration.selectedAutomationPlatforms.forEach(platform => {
+              doc.text(`• ${automationDisplayNames[platform] || platform}`, margin + 5, yPosition);
+              yPosition += lineHeight;
+            });
+            yPosition += 3;
+          }
+
+          // Engagement Features
+          if (crmIntegration.selectedEngagementFeatures?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Engagement Features:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const engagementDisplayNames: Record<string, string> = {
+              'live-chat-intercom-drift': 'Live Chat (Intercom, Drift, etc.)',
+              'helpdesk-zendesk-freshdesk': 'Helpdesk (Zendesk, Freshdesk, etc.)',
+              'social-media-integration': 'Social Media Integration',
+              'review-management': 'Review Management',
+              'loyalty-programs': 'Loyalty Programs',
+              'referral-systems': 'Referral Systems'
+            };
+            
+            crmIntegration.selectedEngagementFeatures.forEach(feature => {
+              doc.text(`• ${engagementDisplayNames[feature] || feature}`, margin + 5, yPosition);
+              yPosition += lineHeight;
+            });
+            yPosition += 3;
+          }
+
+          // Advanced Features
+          if (crmIntegration.selectedAdvancedFeatures?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Advanced Features:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const advancedDisplayNames: Record<string, string> = {
+              'multilingual-translation-support': 'Multilingual / Translation Support',
+              'seo-tools-meta-sitemap-schema': 'SEO Tools (meta tags, sitemap, schema)',
+              'analytics-integration-ga4-hotjar': 'Analytics Integration (GA4, Hotjar, etc.)',
+              'security-features-ssl-captcha-2fa': 'Security Features (SSL, Captcha, 2FA)',
+              'custom-forms-workflows': 'Custom Forms & Workflows',
+              'chatbots-ai-powered-scripted': 'Chatbots (AI-powered or scripted)'
+            };
+            
+            crmIntegration.selectedAdvancedFeatures.forEach(feature => {
+              doc.text(`• ${advancedDisplayNames[feature] || feature}`, margin + 5, yPosition);
+              yPosition += lineHeight;
+            });
+            yPosition += 3;
+          }
+
+          // E-Commerce Features
+          if (crmIntegration.selectedECommerceFeatures?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('E-Commerce Features:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const ecommerceDisplayNames: Record<string, string> = {
+              'online-store-shopify-woocommerce': 'Online Store (Shopify / WooCommerce)',
+              'product-catalog': 'Product Catalog',
+              'shopping-cart-checkout': 'Shopping Cart & Checkout',
+              'digital-downloads': 'Digital Downloads',
+              'inventory-management': 'Inventory Management',
+              'subscription-products': 'Subscription Products',
+              'multi-currency-support': 'Multi-Currency Support',
+              'discount-codes-coupons': 'Discount Codes / Coupons'
+            };
+            
+            crmIntegration.selectedECommerceFeatures.forEach(feature => {
+              doc.text(`• ${ecommerceDisplayNames[feature] || feature}`, margin + 5, yPosition);
+              yPosition += lineHeight;
+            });
+            yPosition += 3;
+          }
+          
+          yPosition += 5;
+        }
+
+        // User Accounts & Membership
+        if (userAccountsMembership && (userAccountsMembership.registrationLogin || userAccountsMembership.userDashboardNeeded || (userAccountsMembership.predefinedRoles?.length > 0 || userAccountsMembership.customRoles?.length > 0) || userAccountsMembership.membershipSubscriptionSystem)) {
+          if (yPosition > 220) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('User Accounts & Membership', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+
+          if (userAccountsMembership.registrationLogin) {
+            doc.text('• User Registration & Login: Yes', margin, yPosition);
+            yPosition += lineHeight;
+          }
+
+          if (userAccountsMembership.userDashboardNeeded) {
+            doc.text('• User Dashboard: Yes', margin, yPosition);
+            yPosition += lineHeight;
+            
+            if (userAccountsMembership.userDashboardFeatures?.trim()) {
+              const dashboardLines = doc.splitTextToSize(`  Dashboard Features: ${userAccountsMembership.userDashboardFeatures}`, maxWidth);
+              doc.text(dashboardLines, margin, yPosition);
+              yPosition += lineHeight * dashboardLines.length;
+            }
+          }
+
+          if (userAccountsMembership.predefinedRoles && userAccountsMembership.predefinedRoles.length > 0) {
+            doc.text('Predefined User Roles:', margin, yPosition);
+            yPosition += lineHeight;
+            
+            const roleDisplayNames: Record<string, string> = {
+              'admin': 'Administrator',
+              'editor': 'Editor',
+              'contributor': 'Contributor',
+              'subscriber': 'Subscriber',
+              'customer': 'Customer',
+              'member': 'Member',
+              'moderator': 'Moderator',
+              'guest': 'Guest'
+            };
+            
+            userAccountsMembership.predefinedRoles.forEach(role => {
+              doc.text(`• ${roleDisplayNames[role] || role}`, margin + 5, yPosition);
+              yPosition += lineHeight;
+            });
+          }
+
+          if (userAccountsMembership.customRoles && userAccountsMembership.customRoles.length > 0) {
+            doc.text('Custom User Roles:', margin, yPosition);
+            yPosition += lineHeight;
+            
+            userAccountsMembership.customRoles.forEach(role => {
+              const roleText = role.description ? `${role.name} (${role.description})` : role.name;
+              const roleLines = doc.splitTextToSize(`• ${roleText}`, maxWidth - 5);
+              doc.text(roleLines, margin + 5, yPosition);
+              yPosition += lineHeight * roleLines.length;
+            });
+          }
+
+          if (userAccountsMembership.membershipSubscriptionSystem) {
+            doc.text('• Membership/Subscription System: Yes', margin, yPosition);
+            yPosition += lineHeight;
+            
+            if (userAccountsMembership.membershipDetails?.trim()) {
+              const membershipLines = doc.splitTextToSize(`  Details: ${userAccountsMembership.membershipDetails}`, maxWidth);
+              doc.text(membershipLines, margin, yPosition);
+              yPosition += lineHeight * membershipLines.length;
+            }
+          }
+          
+          yPosition += 5;
+        }
+
+        // Uploaded Media Files
+        if (mediaFiles && mediaFiles.length > 0) {
+          if (yPosition > 240) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Uploaded Media Files', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          
+          mediaFiles.forEach((file, index) => {
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+            doc.text(`• ${file.name} (${fileSize} MB)`, margin, yPosition);
+            yPosition += lineHeight;
+          });
+          
+          yPosition += 5;
+        }
+
         // Design Preferences
         if (designPreferences.selectedStyle) {
           if (yPosition > 250) {
