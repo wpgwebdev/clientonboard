@@ -33,8 +33,9 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { ProjectSubmissionRow, InsertProjectSubmission } from "@shared/schema";
 
 interface OnboardingWizardProps {
   className?: string;
@@ -497,6 +498,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
   // Project submission state
   const [isProjectSubmitted, setIsProjectSubmitted] = useState(false);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [isSavingProgress, setIsSavingProgress] = useState(false);
 
   // CRM form setup
   const crmForm = useForm<CrmIntegration>({
@@ -506,6 +509,96 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
   const onCrmSubmit = (data: CrmIntegration) => {
     setCrmIntegration(data);
+  };
+
+  // Project submission mutations
+  const createProjectMutation = useMutation({
+    mutationFn: async (data: InsertProjectSubmission) => {
+      const response = await apiRequest('POST', '/api/projects', data);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create project');
+      }
+      return response.json();
+    },
+    onSuccess: (project: ProjectSubmissionRow) => {
+      setCurrentProjectId(project.id);
+      console.log('Project created with ID:', project.id);
+    },
+    onError: (error: Error) => {
+      console.error('Failed to create project:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save your progress. Your data is safe locally.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateProjectMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertProjectSubmission> }) => {
+      const response = await apiRequest('PUT', `/api/projects/${id}`, data);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update project');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      console.log('Project updated successfully');
+    },
+    onError: (error: Error) => {
+      console.error('Failed to update project:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save your progress. Your data is safe locally.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Function to save current progress to database
+  const saveProgress = async (stepCompleted: number) => {
+    if (isSavingProgress) return; // Prevent multiple simultaneous saves
+    
+    setIsSavingProgress(true);
+    
+    try {
+      // Prepare current form data - only include fields that exist in the schema
+      const projectData: Partial<InsertProjectSubmission> = {
+        userId: undefined, // No authentication required for demo
+        businessName: businessName || undefined,
+        businessDescription: businessDescription || undefined,
+        selectedSiteType: selectedSiteType || undefined,
+        pages: pages.length > 0 ? pages : undefined,
+        logoDecision: logoDecision || undefined,
+        logoFile: logoFile ? 'uploaded_file' : undefined,
+        selectedLogo: selectedLogo || undefined,
+        contentPreferences: contentPreferences,
+        generatedContent: generatedContent.length > 0 ? generatedContent : undefined,
+        crmIntegration: Object.keys(crmIntegration).length > 0 ? crmIntegration : undefined,
+        userAccountsMembership: Object.keys(userAccountsMembership).length > 0 ? userAccountsMembership : undefined,
+        imageRequirements: imageRequirements,
+        designPreferences: Object.keys(designPreferences).length > 0 ? {
+          ...designPreferences,
+          selectedStyle: designPreferences.selectedStyle || "",
+          additionalNotes: designPreferences.additionalNotes || "",
+          inspirationLinks: designPreferences.inspirationLinks || []
+        } : undefined
+      };
+
+      if (currentProjectId) {
+        // Update existing project
+        await updateProjectMutation.mutateAsync({ id: currentProjectId, data: projectData });
+      } else {
+        // Create new project
+        await createProjectMutation.mutateAsync(projectData as InsertProjectSubmission);
+      }
+    } catch (error) {
+      console.error('Error saving progress:', error);
+    } finally {
+      setIsSavingProgress(false);
+    }
   };
 
   // User Accounts & Membership form setup
@@ -548,9 +641,13 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
   const canProceed = isStepComplete(currentStep);
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (canProceed && currentStep < steps.length) {
       setCompletedSteps(prev => new Set(Array.from(prev).concat(currentStep)));
+      
+      // Save progress to database
+      await saveProgress(currentStep);
+      
       setCurrentStep(prev => prev + 1);
       console.log('Proceeding to step:', currentStep + 1);
     }
@@ -3341,8 +3438,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           </Button>
         ) : (
           <Button
-            onClick={nextStep}
-            disabled={!canProceed}
+            onClick={() => nextStep()}
+            disabled={!canProceed || isSavingProgress}
             className="gap-2"
             data-testid="button-next"
           >
