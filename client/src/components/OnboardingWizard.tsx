@@ -477,7 +477,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     apiIntegrations: '',
     selectedAutomationPlatforms: [],
     selectedEngagementFeatures: [],
-    selectedAdvancedFeatures: []
+    selectedAdvancedFeatures: [],
+    selectedECommerceFeatures: []
   });
 
   // User Accounts & Membership state
@@ -533,7 +534,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       case 4: return selectedSiteType !== "";
       case 5: return pages.length >= 2;
       case 6: return generatedContent.length > 0; // Copy step - require content generation
-      case 7: return Boolean((crmIntegration.selectedCrms.length > 0 || crmIntegration.selectedMarketingAutomation.length > 0 || crmIntegration.selectedPaymentGateways.length > 0 || (crmIntegration.apiIntegrations && crmIntegration.apiIntegrations.trim().length > 0) || crmIntegration.selectedAutomationPlatforms.length > 0 || crmIntegration.selectedEngagementFeatures.length > 0) && 
+      case 7: return Boolean((crmIntegration.selectedCrms.length > 0 || crmIntegration.selectedMarketingAutomation.length > 0 || crmIntegration.selectedPaymentGateways.length > 0 || (crmIntegration.apiIntegrations && crmIntegration.apiIntegrations.trim().length > 0) || crmIntegration.selectedAutomationPlatforms.length > 0 || crmIntegration.selectedEngagementFeatures.length > 0 || crmIntegration.selectedECommerceFeatures.length > 0) && 
         (!crmIntegration.selectedCrms.includes('custom') || (crmIntegration.customCrmNames && crmIntegration.customCrmNames.length > 0 && crmIntegration.customCrmNames.some(name => name?.trim()))) &&
         (!crmIntegration.selectedMarketingAutomation.includes('custom') || (crmIntegration.customMarketingAutomationNames && crmIntegration.customMarketingAutomationNames.length > 0 && crmIntegration.customMarketingAutomationNames.some(name => name?.trim()))) &&
         (!crmIntegration.selectedPaymentGateways.includes('custom') || (crmIntegration.customPaymentGatewayNames && crmIntegration.customPaymentGatewayNames.length > 0 && crmIntegration.customPaymentGatewayNames.some(name => name?.trim())))); // Integrations step
@@ -2057,6 +2058,55 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                                         crmForm.setValue('selectedAdvancedFeatures', updatedFeatures);
                                       }}
                                       data-testid={`checkbox-advanced-${feature.id}`}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal">
+                                    {feature.label}
+                                  </FormLabel>
+                                </FormItem>
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* E-Commerce Separator */}
+                    <div className="border-t pt-6">
+                      <FormField
+                        control={crmForm.control}
+                        name="selectedECommerceFeatures"
+                        render={() => (
+                          <FormItem>
+                            <FormLabel>E-Commerce</FormLabel>
+                            <FormDescription className="mb-4">
+                              Select e-commerce features and functionality for your online store
+                            </FormDescription>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {[
+                                { id: 'online-store-shopify-woocommerce', label: 'Online Store (Shopify / WooCommerce)' },
+                                { id: 'product-catalog', label: 'Product Catalog' },
+                                { id: 'shopping-cart-checkout', label: 'Shopping Cart & Checkout' },
+                                { id: 'digital-downloads', label: 'Digital Downloads' },
+                                { id: 'inventory-management', label: 'Inventory Management' },
+                                { id: 'subscription-products', label: 'Subscription Products' },
+                                { id: 'multi-currency-support', label: 'Multi-Currency Support' },
+                                { id: 'discount-codes-coupons', label: 'Discount Codes / Coupons' }
+                              ].map((feature) => (
+                                <FormItem key={feature.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={crmIntegration.selectedECommerceFeatures?.includes(feature.id as any) || false}
+                                      onCheckedChange={(checked) => {
+                                        const currentFeatures = crmIntegration.selectedECommerceFeatures || [];
+                                        const updatedFeatures = checked
+                                          ? [...currentFeatures, feature.id as any]
+                                          : currentFeatures.filter(id => id !== feature.id);
+                                        setCrmIntegration(prev => ({ ...prev, selectedECommerceFeatures: updatedFeatures }));
+                                        crmForm.setValue('selectedECommerceFeatures', updatedFeatures);
+                                      }}
+                                      data-testid={`checkbox-ecommerce-${feature.id}`}
                                     />
                                   </FormControl>
                                   <FormLabel className="text-sm font-normal">

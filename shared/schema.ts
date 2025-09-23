@@ -227,6 +227,18 @@ export const integrationSchema = z.object({
     'security-features-ssl-captcha-2fa',
     'custom-forms-workflows',
     'chatbots-ai-powered-scripted'
+  ])).optional().default([]),
+
+  // E-Commerce Integration
+  selectedECommerceFeatures: z.array(z.enum([
+    'online-store-shopify-woocommerce',
+    'product-catalog',
+    'shopping-cart-checkout',
+    'digital-downloads',
+    'inventory-management',
+    'subscription-products',
+    'multi-currency-support',
+    'discount-codes-coupons'
   ])).optional().default([])
 }).superRefine((data, ctx) => {
   // Validate that at least one integration is selected
@@ -237,8 +249,9 @@ export const integrationSchema = z.object({
   const hasAnyAutomation = data.selectedAutomationPlatforms && data.selectedAutomationPlatforms.length > 0;
   const hasAnyEngagement = data.selectedEngagementFeatures && data.selectedEngagementFeatures.length > 0;
   const hasAnyAdvanced = data.selectedAdvancedFeatures && data.selectedAdvancedFeatures.length > 0;
+  const hasAnyECommerce = data.selectedECommerceFeatures && data.selectedECommerceFeatures.length > 0;
   
-  if (!hasAnyCrm && !hasAnyMarketing && !hasAnyPayment && !hasApiIntegrations && !hasAnyAutomation && !hasAnyEngagement && !hasAnyAdvanced) {
+  if (!hasAnyCrm && !hasAnyMarketing && !hasAnyPayment && !hasApiIntegrations && !hasAnyAutomation && !hasAnyEngagement && !hasAnyAdvanced && !hasAnyECommerce) {
     ctx.addIssue({
       code: 'custom',
       message: 'Please select at least one integration type',
