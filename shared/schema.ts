@@ -279,11 +279,16 @@ export const crmIntegrationSchema = integrationSchema;
 export type CrmIntegration = z.infer<typeof integrationSchema>;
 export type IntegrationData = z.infer<typeof integrationSchema>;
 
+// Role Schema for custom roles with descriptions
+export const roleSchema = z.object({
+  name: z.string().min(1, "Role name is required"),
+  description: z.string().optional()
+});
+
 // User Accounts & Membership Schema
 export const userAccountsMembershipSchema = z.object({
-  registrationLogin: z.boolean().default(false),
-  roleBasedAccess: z.array(z.enum(['admin', 'member', 'guest'])).optional().default([]),
-  roleActionsResponsibilities: z.string().optional(),
+  predefinedRoles: z.array(z.enum(['admin', 'member', 'guest'])).optional().default([]),
+  customRoles: z.array(roleSchema).optional().default([]),
   membershipSubscriptionSystem: z.boolean().default(false),
   membershipDetails: z.string().optional()
 }).superRefine((data, ctx) => {
@@ -296,16 +301,21 @@ export const userAccountsMembershipSchema = z.object({
     });
   }
   
-  // If registration & login is enabled, role-based access should be defined
-  if (data.registrationLogin && (!data.roleBasedAccess || data.roleBasedAccess.length === 0)) {
-    ctx.addIssue({
-      code: 'custom',
-      message: 'Role-based access is required when Registration & Login is enabled',
-      path: ['roleBasedAccess']
-    });
+  // Validate custom role names are unique
+  if (data.customRoles && data.customRoles.length > 0) {
+    const roleNames = data.customRoles.map(role => role.name.toLowerCase());
+    const duplicates = roleNames.filter((name, index) => roleNames.indexOf(name) !== index);
+    if (duplicates.length > 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Custom role names must be unique',
+        path: ['customRoles']
+      });
+    }
   }
 });
 
+export type Role = z.infer<typeof roleSchema>;
 export type UserAccountsMembership = z.infer<typeof userAccountsMembershipSchema>;
 
 // Project Submission Schema
