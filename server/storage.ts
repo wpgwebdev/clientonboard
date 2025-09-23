@@ -1,5 +1,7 @@
-import { type User, type InsertUser, type ProjectSubmission, type FeatureSelectionRow, type InsertFeatureSelection } from "@shared/schema";
+import { type User, type InsertUser, type ProjectSubmission, type FeatureSelectionRow, type InsertFeatureSelection, type InsertProjectSubmission, type ProjectSubmissionRow, users, projectSubmissions, featureSelections } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -10,9 +12,11 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   
   // Project submission methods
-  createProjectSubmission(submission: Omit<ProjectSubmission, 'submittedAt'>): Promise<ProjectSubmission & { id: string }>;
-  getProjectSubmission(id: string): Promise<(ProjectSubmission & { id: string }) | undefined>;
-  listProjectSubmissions(): Promise<(ProjectSubmission & { id: string })[]>;
+  createProjectSubmission(submission: InsertProjectSubmission): Promise<ProjectSubmissionRow>;
+  getProjectSubmission(id: string): Promise<ProjectSubmissionRow | undefined>;
+  getProjectSubmissionByUserId(userId: string): Promise<ProjectSubmissionRow | undefined>;
+  updateProjectSubmission(id: string, submission: Partial<InsertProjectSubmission>): Promise<ProjectSubmissionRow | undefined>;
+  listProjectSubmissions(): Promise<ProjectSubmissionRow[]>;
 
   // Feature selection methods
   createFeatureSelection(selection: InsertFeatureSelection): Promise<FeatureSelectionRow>;
@@ -22,102 +26,77 @@ export interface IStorage {
   listFeatureSelections(): Promise<FeatureSelectionRow[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private projectSubmissions: Map<string, ProjectSubmission & { id: string }>;
-  private featureSelections: Map<string, FeatureSelectionRow>;
-
-  constructor() {
-    this.users = new Map();
-    this.projectSubmissions = new Map();
-    this.featureSelections = new Map();
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
   }
 
   // Project submission methods
-  async createProjectSubmission(submission: Omit<ProjectSubmission, 'submittedAt'>): Promise<ProjectSubmission & { id: string }> {
-    const id = randomUUID();
-    const submittedAt = new Date().toISOString();
-    const projectSubmission: ProjectSubmission & { id: string } = {
-      ...submission,
-      id,
-      submittedAt
-    };
-    this.projectSubmissions.set(id, projectSubmission);
-    return projectSubmission;
+  async createProjectSubmission(submission: InsertProjectSubmission): Promise<ProjectSubmissionRow> {
+    const result = await db.insert(projectSubmissions).values(submission as any).returning();
+    return result[0];
   }
 
-  async getProjectSubmission(id: string): Promise<(ProjectSubmission & { id: string }) | undefined> {
-    return this.projectSubmissions.get(id);
+  async getProjectSubmission(id: string): Promise<ProjectSubmissionRow | undefined> {
+    const result = await db.select().from(projectSubmissions).where(eq(projectSubmissions.id, id)).limit(1);
+    return result[0];
   }
 
-  async listProjectSubmissions(): Promise<(ProjectSubmission & { id: string })[]> {
-    return Array.from(this.projectSubmissions.values());
+  async getProjectSubmissionByUserId(userId: string): Promise<ProjectSubmissionRow | undefined> {
+    const result = await db.select().from(projectSubmissions).where(eq(projectSubmissions.userId, userId)).limit(1);
+    return result[0];
+  }
+
+  async updateProjectSubmission(id: string, submission: Partial<InsertProjectSubmission>): Promise<ProjectSubmissionRow | undefined> {
+    const result = await db.update(projectSubmissions)
+      .set(submission as any)
+      .where(eq(projectSubmissions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async listProjectSubmissions(): Promise<ProjectSubmissionRow[]> {
+    return await db.select().from(projectSubmissions);
   }
 
   // Feature selection methods
   async createFeatureSelection(selection: InsertFeatureSelection): Promise<FeatureSelectionRow> {
-    const id = randomUUID();
-    const now = new Date();
-    const featureSelection: FeatureSelectionRow = {
-      id,
-      userId: selection.userId ?? null,
-      projectId: selection.projectId ?? null,
-      selectedFeatures: selection.selectedFeatures,
-      priority: selection.priority ?? null,
-      notes: selection.notes ?? null,
-      createdAt: now,
-      updatedAt: now
-    };
-    this.featureSelections.set(id, featureSelection);
-    return featureSelection;
+    const result = await db.insert(featureSelections).values(selection).returning();
+    return result[0];
   }
 
   async getFeatureSelection(id: string): Promise<FeatureSelectionRow | undefined> {
-    return this.featureSelections.get(id);
+    const result = await db.select().from(featureSelections).where(eq(featureSelections.id, id)).limit(1);
+    return result[0];
   }
 
   async getFeatureSelectionByUserId(userId: string): Promise<FeatureSelectionRow | undefined> {
-    return Array.from(this.featureSelections.values()).find(
-      (selection) => selection.userId === userId
-    );
+    const result = await db.select().from(featureSelections).where(eq(featureSelections.userId, userId)).limit(1);
+    return result[0];
   }
 
   async updateFeatureSelection(id: string, updates: Partial<InsertFeatureSelection>): Promise<FeatureSelectionRow | undefined> {
-    const existing = this.featureSelections.get(id);
-    if (!existing) {
-      return undefined;
-    }
-    
-    const updated: FeatureSelectionRow = {
-      ...existing,
-      ...updates,
-      updatedAt: new Date()
-    };
-    
-    this.featureSelections.set(id, updated);
-    return updated;
+    const result = await db.update(featureSelections)
+      .set(updates)
+      .where(eq(featureSelections.id, id))
+      .returning();
+    return result[0];
   }
 
   async listFeatureSelections(): Promise<FeatureSelectionRow[]> {
-    return Array.from(this.featureSelections.values());
+    return await db.select().from(featureSelections);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
