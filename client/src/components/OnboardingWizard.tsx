@@ -488,6 +488,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     membershipDetails: ''
   });
 
+  // Project submission state
+  const [isProjectSubmitted, setIsProjectSubmitted] = useState(false);
+
   // CRM form setup
   const crmForm = useForm<CrmIntegration>({
     resolver: zodResolver(crmIntegrationSchema),
@@ -1040,9 +1043,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         businessDescription,
         selectedSiteType,
         pages,
-        logoDecision,
+        ...(logoDecision && { logoDecision }), // Only include if not null
         logoFile: logoFile ? 'uploaded_file' : undefined, // In production, convert to base64 or upload separately
-        selectedLogo,
+        ...(selectedLogo && { selectedLogo }), // Only include if not null
         contentPreferences,
         generatedContent,
         crmIntegration,
@@ -1066,9 +1069,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         description: result.message || "Your creative brief has been submitted successfully."
       });
 
-      // Move to completion step
-      setCurrentStep(11);
-      setCompletedSteps(prev => new Set([...Array.from(prev), 10]));
+      // Set submission state to show Thank You page
+      setIsProjectSubmitted(true);
+      setCompletedSteps(prev => new Set([...Array.from(prev), 11]));
 
     } catch (error: any) {
       console.error('Submission error:', error);
@@ -2585,7 +2588,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     }
   };
 
-  if (currentStep === 11) {
+  if (isProjectSubmitted) {
     // Thank you / completion page
     return (
       <div className={`max-w-4xl mx-auto ${className}`}>
