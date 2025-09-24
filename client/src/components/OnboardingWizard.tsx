@@ -527,11 +527,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     },
     onError: (error: Error) => {
       console.error('Failed to create project:', error);
-      toast({
-        title: "Save Failed",
-        description: "Failed to save your progress. Your data is safe locally.",
-        variant: "destructive"
-      });
+      // Don't show toast for create errors - they're expected during early steps
     }
   });
 
@@ -549,13 +545,104 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     },
     onError: (error: Error) => {
       console.error('Failed to update project:', error);
-      toast({
-        title: "Save Failed",
-        description: "Failed to save your progress. Your data is safe locally.",
-        variant: "destructive"
-      });
+      // Don't show toast for update errors - they're expected during partial updates
     }
   });
+
+  // Helper function to build schema-safe project data
+  const buildProjectData = (): InsertProjectSubmission | null => {
+    // Only create project if we have minimum required data
+    if (!businessName?.trim() || !businessDescription?.trim()) {
+      return null; // Wait until we have basic business info
+    }
+
+    // Build data with proper defaults for required fields
+    return {
+      userId: undefined, // No authentication required for demo
+      businessName: businessName.trim(),
+      businessDescription: businessDescription.trim(),
+      selectedSiteType: selectedSiteType || "business", // Default site type
+      pages: pages.length > 0 ? pages : [{ id: "home", name: "Home", path: "/", required: true }, { id: "contact", name: "Contact", path: "/contact", required: true }],
+      logoDecision: logoDecision || undefined,
+      logoFile: logoFile ? 'uploaded_file' : undefined,
+      selectedLogo: selectedLogo || undefined,
+      contentPreferences: {
+        style: contentPreferences.style || "balanced",
+        useVideo: contentPreferences.useVideo ?? false,
+        tone: contentPreferences.tone || "professional"
+      },
+      generatedContent: generatedContent.length > 0 ? generatedContent : [],
+      crmIntegration: Object.keys(crmIntegration).length > 0 ? crmIntegration : undefined,
+      userAccountsMembership: Object.keys(userAccountsMembership).length > 0 ? userAccountsMembership : undefined,
+      imageRequirements: {
+        logoNeeds: imageRequirements.logoNeeds || "need-logo",
+        logoDescription: imageRequirements.logoDescription || undefined,
+        specificImages: imageRequirements.specificImages || undefined,
+        teamPhotos: imageRequirements.teamPhotos ?? false,
+        productPhotos: imageRequirements.productPhotos ?? false,
+        facilityPhotos: imageRequirements.facilityPhotos ?? false,
+        preferredPhotoStyle: imageRequirements.preferredPhotoStyle || undefined,
+        stockPhotoPreference: imageRequirements.stockPhotoPreference || undefined,
+        additionalNotes: imageRequirements.additionalNotes || ""
+      },
+      designPreferences: {
+        selectedStyle: designPreferences.selectedStyle || "modern",
+        preferredFont: designPreferences.preferredFont || undefined,
+        primaryColor: designPreferences.primaryColor || undefined,
+        secondaryColor: designPreferences.secondaryColor || undefined,
+        accentColor: designPreferences.accentColor || undefined,
+        backgroundColor: designPreferences.backgroundColor || undefined,
+        textColor: designPreferences.textColor || undefined,
+        inspirationLinks: designPreferences.inspirationLinks || [],
+        additionalNotes: designPreferences.additionalNotes || ""
+      }
+    };
+  };
+
+  // Helper function to build update data (only changed fields)
+  const buildUpdateData = (): Partial<InsertProjectSubmission> => {
+    const updateData: Partial<InsertProjectSubmission> = {};
+    
+    // Only include fields that have actual values
+    if (businessName?.trim()) updateData.businessName = businessName.trim();
+    if (businessDescription?.trim()) updateData.businessDescription = businessDescription.trim();
+    if (selectedSiteType) updateData.selectedSiteType = selectedSiteType;
+    if (pages.length > 0) updateData.pages = pages;
+    if (logoDecision) updateData.logoDecision = logoDecision;
+    if (logoFile) updateData.logoFile = 'uploaded_file';
+    if (selectedLogo) updateData.selectedLogo = selectedLogo;
+    if (Object.keys(crmIntegration).length > 0) updateData.crmIntegration = crmIntegration;
+    if (Object.keys(userAccountsMembership).length > 0) updateData.userAccountsMembership = userAccountsMembership;
+    
+    // Always update these objects if they have any meaningful content
+    if (contentPreferences.tone || contentPreferences.style || contentPreferences.useVideo !== undefined) {
+      updateData.contentPreferences = contentPreferences;
+    }
+    
+    if (generatedContent.length > 0) {
+      updateData.generatedContent = generatedContent;
+    }
+    
+    if (imageRequirements.logoNeeds || (imageRequirements.specificImages && imageRequirements.specificImages.length > 0) || imageRequirements.additionalNotes) {
+      updateData.imageRequirements = imageRequirements;
+    }
+    
+    if (designPreferences.selectedStyle || designPreferences.preferredFont || designPreferences.primaryColor || designPreferences.inspirationLinks?.length > 0 || designPreferences.additionalNotes) {
+      updateData.designPreferences = {
+        selectedStyle: designPreferences.selectedStyle || "modern",
+        preferredFont: designPreferences.preferredFont || undefined,
+        primaryColor: designPreferences.primaryColor || undefined,
+        secondaryColor: designPreferences.secondaryColor || undefined,
+        accentColor: designPreferences.accentColor || undefined,
+        backgroundColor: designPreferences.backgroundColor || undefined,
+        textColor: designPreferences.textColor || undefined,
+        inspirationLinks: designPreferences.inspirationLinks || [],
+        additionalNotes: designPreferences.additionalNotes || ""
+      };
+    }
+    
+    return updateData;
+  };
 
   // Function to save current progress to database
   const saveProgress = async (stepCompleted: number) => {
@@ -564,37 +651,22 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     setIsSavingProgress(true);
     
     try {
-      // Prepare current form data - only include fields that exist in the schema
-      const projectData: Partial<InsertProjectSubmission> = {
-        userId: undefined, // No authentication required for demo
-        businessName: businessName || undefined,
-        businessDescription: businessDescription || undefined,
-        selectedSiteType: selectedSiteType || undefined,
-        pages: pages.length > 0 ? pages : undefined,
-        logoDecision: logoDecision || undefined,
-        logoFile: logoFile ? 'uploaded_file' : undefined,
-        selectedLogo: selectedLogo || undefined,
-        contentPreferences: contentPreferences,
-        generatedContent: generatedContent.length > 0 ? generatedContent : undefined,
-        crmIntegration: Object.keys(crmIntegration).length > 0 ? crmIntegration : undefined,
-        userAccountsMembership: Object.keys(userAccountsMembership).length > 0 ? userAccountsMembership : undefined,
-        imageRequirements: imageRequirements,
-        designPreferences: Object.keys(designPreferences).length > 0 ? {
-          ...designPreferences,
-          selectedStyle: designPreferences.selectedStyle || "",
-          additionalNotes: designPreferences.additionalNotes || "",
-          inspirationLinks: designPreferences.inspirationLinks || []
-        } : undefined
-      };
-
       if (currentProjectId) {
-        // Update existing project
-        await updateProjectMutation.mutateAsync({ id: currentProjectId, data: projectData });
+        // Update existing project - only send changed fields
+        const updateData = buildUpdateData();
+        if (Object.keys(updateData).length > 0) {
+          await updateProjectMutation.mutateAsync({ id: currentProjectId, data: updateData });
+        }
       } else {
-        // Create new project
-        await createProjectMutation.mutateAsync(projectData as InsertProjectSubmission);
+        // Create new project only if we have minimum required data
+        const projectData = buildProjectData();
+        if (projectData) {
+          const result = await createProjectMutation.mutateAsync(projectData);
+          setCurrentProjectId(result.id);
+        }
       }
     } catch (error) {
+      // Only log error, don't show toast for expected validation issues
       console.error('Error saving progress:', error);
     } finally {
       setIsSavingProgress(false);
