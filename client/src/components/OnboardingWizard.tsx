@@ -967,6 +967,31 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         doc.text('Creative Brief', margin, yPosition);
         yPosition += lineHeight * 2;
 
+        // Contact Information (if provided)
+        if (fullName || email || contactNumber) {
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Contact Information', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          
+          if (fullName) {
+            doc.text(`Full Name: ${fullName}`, margin, yPosition);
+            yPosition += lineHeight;
+          }
+          if (email) {
+            doc.text(`Email: ${email}`, margin, yPosition);
+            yPosition += lineHeight;
+          }
+          if (contactNumber) {
+            doc.text(`Contact Number: ${contactNumber}`, margin, yPosition);
+            yPosition += lineHeight;
+          }
+          yPosition += 5;
+        }
+
         // Business Information
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
@@ -1601,8 +1626,23 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
         const sanitizedBusinessName = sanitizeFilename(businessName || 'Creative Brief');
 
-        // Save the PDF
-        doc.save(`${sanitizedBusinessName}_${currentDate.replace(/\//g, '-')}.pdf`);
+        // Generate PDF blob for explicit local download
+        const pdfBlob = doc.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        
+        // Create download link and trigger download
+        const pdfLink = document.createElement('a');
+        pdfLink.href = pdfUrl;
+        pdfLink.download = `${sanitizedBusinessName}_${currentDate.replace(/\//g, '-')}.pdf`;
+        pdfLink.style.display = 'none';
+        document.body.appendChild(pdfLink);
+        pdfLink.click();
+        document.body.removeChild(pdfLink);
+        
+        // Clean up the blob URL
+        setTimeout(() => {
+          URL.revokeObjectURL(pdfUrl);
+        }, 1000);
         
         // Create and download zip file with uploaded images and logos if any exist
         const imageFiles = mediaFiles ? mediaFiles.filter(file => file.type.startsWith('image/')) : [];
@@ -1666,10 +1706,15 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             const zipLink = document.createElement('a');
             zipLink.href = zipUrl;
             zipLink.download = `${sanitizedBusinessName}_Images_${currentDate.replace(/\//g, '-')}.zip`;
+            zipLink.style.display = 'none';
             document.body.appendChild(zipLink);
             zipLink.click();
             document.body.removeChild(zipLink);
-            URL.revokeObjectURL(zipUrl);
+            
+            // Clean up the blob URL
+            setTimeout(() => {
+              URL.revokeObjectURL(zipUrl);
+            }, 1000);
             
             // Create descriptive message based on what was included
             let description = "Your creative brief PDF and ";
