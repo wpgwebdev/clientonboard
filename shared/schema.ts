@@ -345,6 +345,9 @@ export type UserAccountsMembership = z.infer<typeof userAccountsMembershipSchema
 
 // Project Submission Schema
 export const projectSubmissionSchema = z.object({
+  fullName: z.string().optional(),
+  email: z.string().email().optional(),
+  contactNumber: z.string().optional(),
   businessName: z.string(),
   businessDescription: z.string(),
   selectedSiteType: z.string(),
@@ -383,6 +386,9 @@ export type ProjectSubmission = z.infer<typeof projectSubmissionSchema>;
 export const projectSubmissions = pgTable("project_submissions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id),
+  fullName: text("full_name"),
+  email: text("email"),
+  contactNumber: text("contact_number"),
   businessName: text("business_name").notNull(),
   businessDescription: text("business_description").notNull(),
   selectedSiteType: text("selected_site_type").notNull(),
