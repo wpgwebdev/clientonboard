@@ -3457,6 +3457,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         };
 
         const briefData: CreativeBriefData = {
+          fullName,
+          email,
+          contactNumber,
           businessName,
           businessDescription,
           logoFile: logoFile || undefined,

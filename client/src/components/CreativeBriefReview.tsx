@@ -14,6 +14,9 @@ import {
 } from "lucide-react";
 
 export interface CreativeBriefData {
+  fullName?: string;
+  email?: string;
+  contactNumber?: string;
   businessName: string;
   businessDescription: string;
   logoFile?: File;
@@ -263,6 +266,48 @@ export default function CreativeBriefReview({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Contact Information */}
+        {(briefData.fullName || briefData.email || briefData.contactNumber) && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-primary" />
+                Contact Information
+              </CardTitle>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onEditSection('business')}
+                data-testid="button-edit-contact"
+              >
+                Edit
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {briefData.fullName && (
+                  <div>
+                    <p className="text-sm font-medium">Full Name</p>
+                    <p className="text-sm text-muted-foreground">{briefData.fullName}</p>
+                  </div>
+                )}
+                {briefData.email && (
+                  <div>
+                    <p className="text-sm font-medium">Email</p>
+                    <p className="text-sm text-muted-foreground">{briefData.email}</p>
+                  </div>
+                )}
+                {briefData.contactNumber && (
+                  <div>
+                    <p className="text-sm font-medium">Contact Number</p>
+                    <p className="text-sm text-muted-foreground">{briefData.contactNumber}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Business Identity */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
