@@ -407,6 +407,11 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     console.log(`[DEBUG OnboardingWizard] currentStep changed to: ${currentStep}`);
   }, [currentStep]);
   
+  // Contact information state
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  
   // Form data state
   const [businessName, setBusinessName] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
@@ -559,6 +564,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     // Build data with proper defaults for required fields
     return {
       userId: undefined, // No authentication required for demo
+      fullName: fullName.trim() || undefined,
+      email: email.trim() || undefined,
+      contactNumber: contactNumber.trim() || undefined,
       businessName: businessName.trim(),
       businessDescription: businessDescription.trim(),
       selectedSiteType: selectedSiteType || "business", // Default site type
@@ -604,6 +612,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     const updateData: Partial<InsertProjectSubmission> = {};
     
     // Only include fields that have actual values
+    if (fullName?.trim()) updateData.fullName = fullName.trim();
+    if (email?.trim()) updateData.email = email.trim();
+    if (contactNumber?.trim()) updateData.contactNumber = contactNumber.trim();
     if (businessName?.trim()) updateData.businessName = businessName.trim();
     if (businessDescription?.trim()) updateData.businessDescription = businessDescription.trim();
     if (selectedSiteType) updateData.selectedSiteType = selectedSiteType;
@@ -1777,11 +1788,57 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
       case 2:
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Tell Us About Your Business</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <div className="space-y-6">
+            {/* Contact Information Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Full Name</label>
+                    <input
+                      type="text"
+                      placeholder="Your full name"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full p-3 border rounded-md"
+                      data-testid="input-full-name"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Email</label>
+                    <input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full p-3 border rounded-md"
+                      data-testid="input-email"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Contact Number</label>
+                  <input
+                    type="tel"
+                    placeholder="Your phone number"
+                    value={contactNumber}
+                    onChange={(e) => setContactNumber(e.target.value)}
+                    className="w-full p-3 border rounded-md"
+                    data-testid="input-contact-number"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Business Information Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Tell Us About Your Business</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
               {/* First: Business Description */}
               <div>
                 <label className="text-sm font-medium mb-2 block">Business Description *</label>
@@ -1947,6 +2004,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
               )}
             </CardContent>
           </Card>
+          </div>
         );
 
       case 3:
