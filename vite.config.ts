@@ -33,5 +33,11 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+     proxy: {
+      '/clientonboard': {
+        target: 'https://enotone.com',
+        changeOrigin: true,
+      },
+    },
   },
 });

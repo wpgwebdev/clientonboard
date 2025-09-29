@@ -12,14 +12,16 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+ 
   const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    method, 
+    headers: data ? { "Content-Type": "application/json"} : {},
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: 'include',
+    
   });
-
-  await throwIfResNotOk(res);
+   console.log(res);
+  //await throwIfResNotOk(res);
   return res;
 }
 
