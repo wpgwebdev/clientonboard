@@ -65,3 +65,24 @@ Preferred communication style: Simple, everyday language.
 - **Validation**: Zod schemas for runtime type validation
 - **Icons**: Lucide React for consistent iconography
 - **Utilities**: clsx and tailwind-merge for conditional styling
+
+## Deployment Configuration
+
+### Render.com Deployment
+The application is configured for deployment on Render with the following setup:
+
+- **Configuration File**: `render.yaml` defines web service and database
+- **Health Check**: `/api/health` endpoint for service monitoring
+- **Database**: Supports both Neon serverless and standard PostgreSQL with SSL
+- **Environment Detection**: Automatically binds to `0.0.0.0` in production environments
+- **Node Version**: Specified in `.node-version` (Node.js 18)
+
+**Required Environment Variables for Render:**
+- `DATABASE_URL`: PostgreSQL connection string (auto-configured from database)
+- `OPENAI_API_KEY`: OpenAI API key for AI features
+- `NODE_ENV`: Set to `production`
+
+### Local Development
+- **Mac Setup**: Documented in `SETUP_MAC.md` with PostgreSQL configuration
+- **Environment Variables**: Loaded via dotenv from `.env` file
+- **Host Configuration**: Automatically uses `localhost` for local development

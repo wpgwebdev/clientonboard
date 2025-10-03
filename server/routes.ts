@@ -8,6 +8,11 @@ import { logoGenerationRequestSchema, type GeneratedLogo, contentGenerationReque
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint for Render
+  app.get("/api/health", (req, res) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   // Business name generation endpoint
   app.post("/api/generate-names", async (req, res) => {
     try {

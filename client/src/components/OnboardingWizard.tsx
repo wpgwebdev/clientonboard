@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,10 +9,10 @@ import SitemapBuilder, { type Page } from "./SitemapBuilder";
 import DesignStyleSelector, { type DesignPreferences } from "./DesignStyleSelector";
 import CreativeBriefReview, { type CreativeBriefData } from "./CreativeBriefReview";
 import FileUpload from "./FileUpload";
-import {
-  type LogoPreferences,
-  type GeneratedLogo,
-  type LogoSelection,
+import { 
+  type LogoPreferences, 
+  type GeneratedLogo, 
+  type LogoSelection, 
   logoPreferencesSchema,
   type ContentPreferences,
   contentPreferencesSchema,
@@ -36,11 +36,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { ProjectSubmissionRow, InsertProjectSubmission } from "@shared/schema";
-
-
-const apiUrl = import.meta.env.VITE_API_URL;
-
-
 
 interface OnboardingWizardProps {
   className?: string;
@@ -81,7 +76,7 @@ const logoTypes = [
 ];
 
 const logoStyles = [
-  "modern", "classic", "minimalist", "vintage", "playful", "elegant", "bold", "organic",
+  "modern", "classic", "minimalist", "vintage", "playful", "elegant", "bold", "organic", 
   "geometric", "hand-drawn", "tech", "luxury"
 ];
 
@@ -98,7 +93,7 @@ interface LogoGenerationFormProps {
 
 function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated, onCancel, generatedLogos, selectedLogo, onLogoSelect, onPreferencesChange }: LogoGenerationFormProps) {
   const { toast } = useToast();
-
+  
   const form = useForm<LogoPreferences>({
     resolver: zodResolver(logoPreferencesSchema),
     defaultValues: {
@@ -119,13 +114,13 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
   const generateLogosMutation = useMutation({
     mutationFn: async (data: LogoPreferences) => {
       console.log('Starting logo generation with AI...');
-
+      
       const response = await apiRequest('POST', '/api/logo/generate', {
         businessName: businessName || undefined,
         description: businessDescription,
         preferences: data
       });
-
+      
       const result = await response.json();
       return result;
     },
@@ -154,9 +149,9 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-medium">Generate Logo Ideas</h3>
-        <Button
-          variant="ghost"
-          size="sm"
+        <Button 
+          variant="ghost" 
+          size="sm" 
           onClick={onCancel}
           data-testid="button-change-logo-path"
         >
@@ -237,7 +232,7 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
                 <FormLabel>Color Preferences</FormLabel>
                 <FormDescription>Describe your preferred colors (e.g., "blue and white", "earth tones", "vibrant")</FormDescription>
                 <FormControl>
-                  <Input
+                  <Input 
                     placeholder="e.g., blue and silver, warm earth tones, monochrome"
                     {...field}
                     data-testid="input-logo-colors"
@@ -257,7 +252,7 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
                 <FormLabel>Design Inspirations</FormLabel>
                 <FormDescription>Optional: Any specific concepts, symbols, or ideas for your logo</FormDescription>
                 <FormControl>
-                  <Textarea
+                  <Textarea 
                     placeholder="e.g., mountain peaks, circuit boards, handwritten script, vintage badges..."
                     className="resize-none"
                     rows={3}
@@ -279,8 +274,8 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
 
           {/* Generate Button */}
           <div className="flex gap-3">
-            <Button
-              type="submit"
+            <Button 
+              type="submit" 
               disabled={generateLogosMutation.isPending}
               data-testid="button-generate-logos"
             >
@@ -296,9 +291,9 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
                 </>
               )}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
+            <Button 
+              type="button" 
+              variant="outline" 
               onClick={onCancel}
               disabled={generateLogosMutation.isPending}
               data-testid="button-cancel-generation"
@@ -319,27 +314,28 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
           <p className="text-sm text-muted-foreground">
             Select a logo that you'd like to use as your final design or as creative direction.
           </p>
-
+          
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {generatedLogos.map((logo) => (
-              <Card
-                key={logo.id}
-                className={`cursor-pointer transition-all hover-elevate ${selectedLogo?.id === logo.id
-                    ? 'ring-2 ring-primary bg-primary/5'
+              <Card 
+                key={logo.id} 
+                className={`cursor-pointer transition-all hover-elevate ${
+                  selectedLogo?.id === logo.id 
+                    ? 'ring-2 ring-primary bg-primary/5' 
                     : 'hover:shadow-md'
-                  }`}
+                }`}
                 data-testid={`card-logo-option-${logo.id}`}
               >
                 <CardContent className="p-3">
                   <div className="aspect-square rounded-lg overflow-hidden bg-gray-50 mb-3">
-                    <img
-                      src={logo.dataUrl}
+                    <img 
+                      src={logo.dataUrl} 
                       alt="Generated logo option"
                       className="w-full h-full object-contain"
                       data-testid={`image-logo-${logo.id}`}
                     />
                   </div>
-
+                  
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <Button
@@ -372,10 +368,10 @@ function LogoGenerationForm({ businessName, businessDescription, onLogoGenerated
               </Card>
             ))}
           </div>
-
+          
           <div className="text-center pt-4">
-            <Button
-              variant="outline"
+            <Button 
+              variant="outline" 
               onClick={() => {
                 // Clear current results to allow new generation
                 onLogoGenerated([]);
@@ -396,7 +392,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-
+  
   // Debug logging for component lifecycle
   useEffect(() => {
     console.log('[DEBUG OnboardingWizard] Component mounted');
@@ -405,18 +401,17 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       console.trace('[DEBUG] Unmount stack trace:');
     };
   }, []);
-
+  
   // Debug logging for currentStep changes
   useEffect(() => {
- 
     console.log(`[DEBUG OnboardingWizard] currentStep changed to: ${currentStep}`);
   }, [currentStep]);
-
+  
   // Contact information state
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [contactNumber, setContactNumber] = useState("");
-
+  
   // Form data state
   const [businessName, setBusinessName] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
@@ -425,7 +420,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const [generatedNames, setGeneratedNames] = useState<string[]>([]);
   const [isGeneratingNames, setIsGeneratingNames] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
-
+  
   // Logo generation state
   const [logoPath, setLogoPath] = useState<'upload' | 'generate' | null>(null);
   const [logoPreferences, setLogoPreferences] = useState<LogoPreferences>({
@@ -439,7 +434,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const [isGeneratingLogos, setIsGeneratingLogos] = useState(false);
   const [selectedLogo, setSelectedLogo] = useState<GeneratedLogo | null>(null);
   const [logoDecision, setLogoDecision] = useState<'final' | 'direction' | null>(null);
-
+  
   // Content generation state
   const [contentPreferences, setContentPreferences] = useState<ContentPreferences>({
     style: 'balanced',
@@ -448,7 +443,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   });
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent[]>([]);
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
-
+  
   const [selectedSiteType, setSelectedSiteType] = useState<string>("");
   const [pages, setPages] = useState<Page[]>(initialPages);
   const [designPreferences, setDesignPreferences] = useState<DesignPreferences>({
@@ -462,7 +457,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     inspirationLinks: [],
     additionalNotes: ""
   });
-
+  
   // Images & Media state
   const [imageRequirements, setImageRequirements] = useState<ImageRequirements>({
     logoNeeds: 'need-logo',
@@ -476,7 +471,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     additionalNotes: ''
   });
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
-
+  
   // CRM Integration state
   const [crmIntegration, setCrmIntegration] = useState<CrmIntegration>({
     selectedCrms: [],
@@ -615,7 +610,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   // Helper function to build update data (only changed fields)
   const buildUpdateData = (): Partial<InsertProjectSubmission> => {
     const updateData: Partial<InsertProjectSubmission> = {};
-
+    
     // Only include fields that have actual values
     if (fullName?.trim()) updateData.fullName = fullName.trim();
     if (email?.trim()) updateData.email = email.trim();
@@ -629,20 +624,20 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
     if (selectedLogo) updateData.selectedLogo = selectedLogo;
     if (Object.keys(crmIntegration).length > 0) updateData.crmIntegration = crmIntegration;
     if (Object.keys(userAccountsMembership).length > 0) updateData.userAccountsMembership = userAccountsMembership;
-
+    
     // Always update these objects if they have any meaningful content
     if (contentPreferences.tone || contentPreferences.style || contentPreferences.useVideo !== undefined) {
       updateData.contentPreferences = contentPreferences;
     }
-
+    
     if (generatedContent.length > 0) {
       updateData.generatedContent = generatedContent;
     }
-
+    
     if (imageRequirements.logoNeeds || (imageRequirements.specificImages && imageRequirements.specificImages.length > 0) || imageRequirements.additionalNotes) {
       updateData.imageRequirements = imageRequirements;
     }
-
+    
     if (designPreferences.selectedStyle || designPreferences.preferredFont || designPreferences.primaryColor || designPreferences.inspirationLinks?.length > 0 || designPreferences.additionalNotes) {
       updateData.designPreferences = {
         selectedStyle: designPreferences.selectedStyle || "modern",
@@ -656,16 +651,16 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         additionalNotes: designPreferences.additionalNotes || ""
       };
     }
-
+    
     return updateData;
   };
 
   // Function to save current progress to database
   const saveProgress = async (stepCompleted: number) => {
     if (isSavingProgress) return; // Prevent multiple simultaneous saves
-
+    
     setIsSavingProgress(true);
-
+    
     try {
       if (currentProjectId) {
         // Update existing project - only send changed fields
@@ -707,15 +702,15 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const isStepComplete = (stepId: number): boolean => {
     switch (stepId) {
       case 1: return true; // Welcome step is always complete
-      case 2: return businessDescription.trim() !== "" &&
-        businessName.trim() !== "" &&
-        hasBusinessName !== null;
-      case 3: return (logoPath === 'upload' && logoFile !== null) ||
-        (logoPath === 'generate' && logoPreferences.types.length > 0 && logoPreferences.styles.length > 0);
+      case 2: return businessDescription.trim() !== "" && 
+                     businessName.trim() !== "" && 
+                     hasBusinessName !== null;
+      case 3: return (logoPath === 'upload' && logoFile !== null) || 
+                     (logoPath === 'generate' && logoPreferences.types.length > 0 && logoPreferences.styles.length > 0);
       case 4: return selectedSiteType !== "";
       case 5: return pages.length >= 2;
       case 6: return generatedContent.length > 0; // Copy step - require content generation
-      case 7: return Boolean((crmIntegration.selectedCrms.length > 0 || crmIntegration.selectedMarketingAutomation.length > 0 || crmIntegration.selectedPaymentGateways.length > 0 || (crmIntegration.apiIntegrations && crmIntegration.apiIntegrations.trim().length > 0) || crmIntegration.selectedAutomationPlatforms.length > 0 || crmIntegration.selectedEngagementFeatures.length > 0 || crmIntegration.selectedECommerceFeatures.length > 0) &&
+      case 7: return Boolean((crmIntegration.selectedCrms.length > 0 || crmIntegration.selectedMarketingAutomation.length > 0 || crmIntegration.selectedPaymentGateways.length > 0 || (crmIntegration.apiIntegrations && crmIntegration.apiIntegrations.trim().length > 0) || crmIntegration.selectedAutomationPlatforms.length > 0 || crmIntegration.selectedEngagementFeatures.length > 0 || crmIntegration.selectedECommerceFeatures.length > 0) && 
         (!crmIntegration.selectedCrms.includes('custom') || (crmIntegration.customCrmNames && crmIntegration.customCrmNames.length > 0 && crmIntegration.customCrmNames.some(name => name?.trim()))) &&
         (!crmIntegration.selectedMarketingAutomation.includes('custom') || (crmIntegration.customMarketingAutomationNames && crmIntegration.customMarketingAutomationNames.length > 0 && crmIntegration.customMarketingAutomationNames.some(name => name?.trim()))) &&
         (!crmIntegration.selectedPaymentGateways.includes('custom') || (crmIntegration.customPaymentGatewayNames && crmIntegration.customPaymentGatewayNames.length > 0 && crmIntegration.customPaymentGatewayNames.some(name => name?.trim())))); // Integrations step
@@ -732,10 +727,10 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const nextStep = async () => {
     if (canProceed && currentStep < steps.length) {
       setCompletedSteps(prev => new Set(Array.from(prev).concat(currentStep)));
-
+      
       // Save progress to database
       await saveProgress(currentStep);
-
+      
       setCurrentStep(prev => prev + 1);
       console.log('Proceeding to step:', currentStep + 1);
     }
@@ -758,7 +753,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const generateBusinessNames = async () => {
     // Need either business description or business name idea
     if (!businessDescription.trim() && !businessNameIdea.trim()) return;
-
+    
     setIsGeneratingNames(true);
     try {
       const response = await fetch('/api/generate-names', {
@@ -766,12 +761,12 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           description: businessDescription.trim() || undefined,
           nameIdea: businessNameIdea.trim() || undefined
         })
       });
-
+      
       if (response.ok) {
         const data = await response.json();
         setGeneratedNames(data.names || []);
@@ -793,7 +788,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       const baseName = businessNameIdea.trim() || businessDescription.split(' ')[0] || "Business";
       setGeneratedNames([
         `${baseName} Co`,
-        `${baseName} Solutions`,
+        `${baseName} Solutions`, 
         `${baseName} Studio`,
         `${baseName} Group`,
         `${baseName} Pro`
@@ -805,10 +800,10 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
   const generateContent = async () => {
     if (isGeneratingContent) return;
-
+    
     setIsGeneratingContent(true);
     console.log('Generating AI content for pages...');
-
+    
     try {
       // Collect page directions from existing content
       const pageDirections = generatedContent
@@ -826,15 +821,15 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         preferences: contentPreferences,
         pageDirections: pageDirections
       });
-
+      
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to generate content');
       }
-
+      
       const data = await response.json() as { content: GeneratedContent[] };
       setGeneratedContent(data.content);
-
+      
       toast({
         title: "Content Generated!",
         description: `Created content for ${data.content.length} pages.`
@@ -855,11 +850,11 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const updatePageDirection = (pageId: string, direction: string) => {
     setGeneratedContent(prevContent => {
       const existingIndex = prevContent.findIndex(content => content.pageId === pageId);
-
+      
       if (existingIndex >= 0) {
         // Update existing entry
-        return prevContent.map(content =>
-          content.pageId === pageId
+        return prevContent.map(content => 
+          content.pageId === pageId 
             ? { ...content, pageDirection: direction }
             : content
         );
@@ -883,14 +878,14 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
   // Function to update page content (editing)
   const updatePageContent = (pageId: string, newContent: string) => {
-    setGeneratedContent(prevContent =>
-      prevContent.map(content =>
-        content.pageId === pageId
-          ? {
-            ...content,
-            editedContent: newContent,
-            hasEdits: newContent !== content.content
-          }
+    setGeneratedContent(prevContent => 
+      prevContent.map(content => 
+        content.pageId === pageId 
+          ? { 
+              ...content, 
+              editedContent: newContent,
+              hasEdits: newContent !== content.content
+            }
           : content
       )
     );
@@ -899,14 +894,14 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   // Function to regenerate content for a specific page
   const regeneratePageContent = async (page: Page) => {
     if (isGeneratingContent) return;
-
+    
     setIsGeneratingContent(true);
     console.log(`Regenerating content for ${page.name} page...`);
-
+    
     try {
       const pageContent = generatedContent.find(content => content.pageId === page.id);
       const customDirection = pageContent?.pageDirection || '';
-
+      
       const response = await apiRequest('POST', '/api/content/regenerate', {
         businessName,
         businessDescription,
@@ -915,27 +910,27 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         preferences: contentPreferences,
         pageDirection: customDirection
       });
-
+      
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to regenerate content');
       }
-
+      
       const data = await response.json() as { content: GeneratedContent };
-
+      
       // Update the specific page content
-      setGeneratedContent(prevContent =>
-        prevContent.map(content =>
-          content.pageId === page.id
-            ? {
-              ...data.content,
-              pageDirection: customDirection,
-              hasEdits: false // Reset edit flag for regenerated content
-            }
+      setGeneratedContent(prevContent => 
+        prevContent.map(content => 
+          content.pageId === page.id 
+            ? { 
+                ...data.content, 
+                pageDirection: customDirection,
+                hasEdits: false // Reset edit flag for regenerated content
+              }
             : content
         )
       );
-
+      
       toast({
         title: "Content Regenerated!",
         description: `Updated content for ${page.name} page.`
@@ -954,126 +949,136 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
   const exportPDF = async () => {
     console.log('Exporting creative brief as PDF...');
-
+    
     try {
       // Import libraries dynamically
       const { jsPDF } = await import('jspdf');
       const JSZip = (await import('jszip')).default;
-      const doc = new jsPDF();
-      let yPosition = 20;
-      const lineHeight = 8;
-      const pageWidth = 210;
-      const margin = 20;
-      const maxWidth = pageWidth - (margin * 2);
+        const doc = new jsPDF();
+        let yPosition = 20;
+        const lineHeight = 8;
+        const pageWidth = 210;
+        const margin = 20;
+        const maxWidth = pageWidth - (margin * 2);
 
-      // Title
-      doc.setFontSize(20);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Creative Brief', margin, yPosition);
-      yPosition += lineHeight * 2;
+        // Title
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Creative Brief', margin, yPosition);
+        yPosition += lineHeight * 2;
 
-      // Contact Information (if provided)
-      if (fullName || email || contactNumber) {
+        // Contact Information (if provided)
+        if (fullName || email || contactNumber) {
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Contact Information', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          
+          if (fullName) {
+            doc.text(`Full Name: ${fullName}`, margin, yPosition);
+            yPosition += lineHeight;
+          }
+          if (email) {
+            doc.text(`Email: ${email}`, margin, yPosition);
+            yPosition += lineHeight;
+          }
+          if (contactNumber) {
+            doc.text(`Contact Number: ${contactNumber}`, margin, yPosition);
+            yPosition += lineHeight;
+          }
+          yPosition += 5;
+        }
+
+        // Business Information
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.text('Contact Information', margin, yPosition);
+        doc.text('Business Information', margin, yPosition);
         yPosition += lineHeight;
-
+        
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
+        doc.text(`Business Name: ${businessName}`, margin, yPosition);
+        yPosition += lineHeight;
+        
+        // Split long description text
+        const descriptionLines = doc.splitTextToSize(`Description: ${businessDescription}`, maxWidth);
+        doc.text(descriptionLines, margin, yPosition);
+        yPosition += lineHeight * descriptionLines.length + 5;
 
-        if (fullName) {
-          doc.text(`Full Name: ${fullName}`, margin, yPosition);
+        // Website Type & Pages
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Website Information', margin, yPosition);
+        yPosition += lineHeight;
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Website Type: ${selectedSiteType}`, margin, yPosition);
+        yPosition += lineHeight + 3;
+        
+        doc.text('Pages:', margin, yPosition);
+        yPosition += lineHeight;
+        pages.forEach(page => {
+          doc.text(`• ${page.name} (${page.path})`, margin + 5, yPosition);
           yPosition += lineHeight;
-        }
-        if (email) {
-          doc.text(`Email: ${email}`, margin, yPosition);
-          yPosition += lineHeight;
-        }
-        if (contactNumber) {
-          doc.text(`Contact Number: ${contactNumber}`, margin, yPosition);
-          yPosition += lineHeight;
-        }
+        });
         yPosition += 5;
-      }
 
-      // Business Information
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Business Information', margin, yPosition);
-      yPosition += lineHeight;
-
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Business Name: ${businessName}`, margin, yPosition);
-      yPosition += lineHeight;
-
-      // Split long description text
-      const descriptionLines = doc.splitTextToSize(`Description: ${businessDescription}`, maxWidth);
-      doc.text(descriptionLines, margin, yPosition);
-      yPosition += lineHeight * descriptionLines.length + 5;
-
-      // Website Type & Pages
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Website Information', margin, yPosition);
-      yPosition += lineHeight;
-
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Website Type: ${selectedSiteType}`, margin, yPosition);
-      yPosition += lineHeight + 3;
-
-      doc.text('Pages:', margin, yPosition);
-      yPosition += lineHeight;
-      pages.forEach(page => {
-        doc.text(`• ${page.name} (${page.path})`, margin + 5, yPosition);
-        yPosition += lineHeight;
-      });
-      yPosition += 5;
-
-      // Logo Information
-      if (logoDecision || logoFile) {
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Branding & Logo', margin, yPosition);
-        yPosition += lineHeight;
-
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-
-        // Try to embed the logo image
-        try {
-          if (logoFile && logoFile instanceof File) {
-            // For uploaded logo files - handle async FileReader
-            const logoDataUrl = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                if (e.target?.result) {
-                  resolve(e.target.result as string);
-                } else {
-                  reject(new Error('Failed to read file'));
-                }
-              };
-              reader.onerror = () => reject(new Error('FileReader error'));
-              reader.readAsDataURL(logoFile);
-            });
-
-            // Detect image format from data URL
-            const imageFormat = logoDataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
-            doc.addImage(logoDataUrl, imageFormat, margin, yPosition, 30, 20);
-            yPosition += 25;
-            doc.text('Logo: Custom logo uploaded', margin, yPosition);
-            yPosition += lineHeight + 5;
-          } else if (selectedLogo && selectedLogo.dataUrl) {
-            // For AI-generated logos
-            const imageFormat = selectedLogo.dataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
-            doc.addImage(selectedLogo.dataUrl, imageFormat, margin, yPosition, 30, 20);
-            yPosition += 25;
-            doc.text('Logo: AI-generated logo selected', margin, yPosition);
-            yPosition += lineHeight + 5;
-          } else {
-            // Fallback text-only
+        // Logo Information
+        if (logoDecision || logoFile) {
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Branding & Logo', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          
+          // Try to embed the logo image
+          try {
+            if (logoFile && logoFile instanceof File) {
+              // For uploaded logo files - handle async FileReader
+              const logoDataUrl = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  if (e.target?.result) {
+                    resolve(e.target.result as string);
+                  } else {
+                    reject(new Error('Failed to read file'));
+                  }
+                };
+                reader.onerror = () => reject(new Error('FileReader error'));
+                reader.readAsDataURL(logoFile);
+              });
+              
+              // Detect image format from data URL
+              const imageFormat = logoDataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+              doc.addImage(logoDataUrl, imageFormat, margin, yPosition, 30, 20);
+              yPosition += 25;
+              doc.text('Logo: Custom logo uploaded', margin, yPosition);
+              yPosition += lineHeight + 5;
+            } else if (selectedLogo && selectedLogo.dataUrl) {
+              // For AI-generated logos
+              const imageFormat = selectedLogo.dataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+              doc.addImage(selectedLogo.dataUrl, imageFormat, margin, yPosition, 30, 20);
+              yPosition += 25;
+              doc.text('Logo: AI-generated logo selected', margin, yPosition);
+              yPosition += lineHeight + 5;
+            } else {
+              // Fallback text-only
+              if (logoFile) {
+                doc.text('Logo: Custom logo uploaded', margin, yPosition);
+              } else if (selectedLogo) {
+                doc.text('Logo: AI-generated logo selected', margin, yPosition);
+              }
+              yPosition += lineHeight + 5;
+            }
+          } catch (logoError) {
+            console.log('Could not embed logo in PDF:', logoError);
+            // Fallback to text description
             if (logoFile) {
               doc.text('Logo: Custom logo uploaded', margin, yPosition);
             } else if (selectedLogo) {
@@ -1081,672 +1086,662 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             }
             yPosition += lineHeight + 5;
           }
-        } catch (logoError) {
-          console.log('Could not embed logo in PDF:', logoError);
-          // Fallback to text description
-          if (logoFile) {
-            doc.text('Logo: Custom logo uploaded', margin, yPosition);
-          } else if (selectedLogo) {
-            doc.text('Logo: AI-generated logo selected', margin, yPosition);
-          }
+        }
+
+        // Content Preferences
+        if (contentPreferences) {
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Content Preferences', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Style: ${contentPreferences.style}`, margin, yPosition);
+          yPosition += lineHeight;
+          doc.text(`Tone: ${contentPreferences.tone}`, margin, yPosition);
+          yPosition += lineHeight;
+          doc.text(`Video Content: ${contentPreferences.useVideo ? 'Yes' : 'No'}`, margin, yPosition);
           yPosition += lineHeight + 5;
         }
-      }
 
-      // Content Preferences
-      if (contentPreferences) {
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Content Preferences', margin, yPosition);
-        yPosition += lineHeight;
-
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Style: ${contentPreferences.style}`, margin, yPosition);
-        yPosition += lineHeight;
-        doc.text(`Tone: ${contentPreferences.tone}`, margin, yPosition);
-        yPosition += lineHeight;
-        doc.text(`Video Content: ${contentPreferences.useVideo ? 'Yes' : 'No'}`, margin, yPosition);
-        yPosition += lineHeight + 5;
-      }
-
-      // Image Requirements
-      if (imageRequirements) {
-        // Check if we need a new page
-        if (yPosition > 250) {
-          doc.addPage();
-          yPosition = 20;
-        }
-
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Image & Media Requirements', margin, yPosition);
-        yPosition += lineHeight;
-
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Logo Needs: ${imageRequirements.logoNeeds}`, margin, yPosition);
-        yPosition += lineHeight;
-
-        if (imageRequirements.logoDescription) {
-          const logoDescLines = doc.splitTextToSize(`Logo Description: ${imageRequirements.logoDescription}`, maxWidth);
-          doc.text(logoDescLines, margin, yPosition);
-          yPosition += lineHeight * logoDescLines.length;
-        }
-
-        doc.text('Photo Types Needed:', margin, yPosition);
-        yPosition += lineHeight;
-        if (imageRequirements.teamPhotos) doc.text('• Team/Staff Photos', margin + 5, yPosition), yPosition += lineHeight;
-        if (imageRequirements.productPhotos) doc.text('• Product Photos', margin + 5, yPosition), yPosition += lineHeight;
-        if (imageRequirements.facilityPhotos) doc.text('• Facility Photos', margin + 5, yPosition), yPosition += lineHeight;
-
-        if (imageRequirements.preferredPhotoStyle) {
-          doc.text(`Photo Style: ${imageRequirements.preferredPhotoStyle}`, margin, yPosition);
-          yPosition += lineHeight;
-        }
-
-        if (imageRequirements.stockPhotoPreference) {
-          doc.text(`Stock Photo Preference: ${imageRequirements.stockPhotoPreference}`, margin, yPosition);
-          yPosition += lineHeight;
-        }
-
-        if (imageRequirements.specificImages && imageRequirements.specificImages.length > 0) {
-          doc.text('Specific Images Needed:', margin, yPosition);
-          yPosition += lineHeight;
-          imageRequirements.specificImages.forEach(image => {
-            const imageLines = doc.splitTextToSize(`• ${image}`, maxWidth - 5);
-            doc.text(imageLines, margin + 5, yPosition);
-            yPosition += lineHeight * imageLines.length;
-          });
-        }
-        yPosition += 5;
-      }
-
-      // Integrations
-      if (crmIntegration && (crmIntegration.selectedCrms?.length > 0 || crmIntegration.selectedMarketingAutomation?.length > 0 || crmIntegration.selectedPaymentGateways?.length > 0 || crmIntegration.apiIntegrations?.trim() || crmIntegration.selectedAutomationPlatforms?.length > 0 || crmIntegration.selectedEngagementFeatures?.length > 0 || crmIntegration.selectedAdvancedFeatures?.length > 0 || crmIntegration.selectedECommerceFeatures?.length > 0)) {
-        if (yPosition > 220) {
-          doc.addPage();
-          yPosition = 20;
-        }
-
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Integrations', margin, yPosition);
-        yPosition += lineHeight;
-
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-
-        // CRM Platforms
-        if (crmIntegration.selectedCrms?.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          doc.text('CRM Platforms:', margin, yPosition);
-          yPosition += lineHeight;
-          doc.setFont('helvetica', 'normal');
-
-          const crmDisplayNames: Record<string, string> = {
-            'salesforce': 'Salesforce',
-            'hubspot': 'HubSpot',
-            'zoho-crm': 'Zoho CRM',
-            'pipedrive': 'Pipedrive',
-            'microsoft-dynamics-365': 'Microsoft Dynamics 365',
-            'freshsales': 'Freshsales',
-            'ontraport': 'Ontraport',
-            'nimble': 'Nimble',
-            'nutshell': 'Nutshell',
-            'membrain': 'Membrain',
-            'sugarcrm': 'SugarCRM'
-          };
-
-          crmIntegration.selectedCrms.forEach(crm => {
-            if (crm === 'custom') {
-              if (crmIntegration.customCrmNames && crmIntegration.customCrmNames.length > 0) {
-                crmIntegration.customCrmNames.filter(name => name.trim()).forEach(customName => {
-                  doc.text(`• ${customName}`, margin + 5, yPosition);
-                  yPosition += lineHeight;
-                });
-              }
-            } else {
-              doc.text(`• ${crmDisplayNames[crm] || crm}`, margin + 5, yPosition);
-              yPosition += lineHeight;
-            }
-          });
-          yPosition += 3;
-        }
-
-        // Marketing Automation
-        if (crmIntegration.selectedMarketingAutomation?.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          doc.text('Marketing Automation:', margin, yPosition);
-          yPosition += lineHeight;
-          doc.setFont('helvetica', 'normal');
-
-          const marketingDisplayNames: Record<string, string> = {
-            'klaviyo': 'Klaviyo',
-            'hubspot': 'HubSpot',
-            'activecampaign': 'ActiveCampaign',
-            'mailchimp': 'Mailchimp',
-            'brevo': 'Brevo',
-            'marketo-engage': 'Marketo Engage',
-            'pardot': 'Pardot'
-          };
-
-          crmIntegration.selectedMarketingAutomation.forEach(platform => {
-            if (platform === 'custom') {
-              if (crmIntegration.customMarketingAutomationNames && crmIntegration.customMarketingAutomationNames.length > 0) {
-                crmIntegration.customMarketingAutomationNames.filter(name => name.trim()).forEach(customName => {
-                  doc.text(`• ${customName}`, margin + 5, yPosition);
-                  yPosition += lineHeight;
-                });
-              }
-            } else {
-              doc.text(`• ${marketingDisplayNames[platform] || platform}`, margin + 5, yPosition);
-              yPosition += lineHeight;
-            }
-          });
-          yPosition += 3;
-        }
-
-        // Payment Gateways
-        if (crmIntegration.selectedPaymentGateways?.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          doc.text('Payment Gateways:', margin, yPosition);
-          yPosition += lineHeight;
-          doc.setFont('helvetica', 'normal');
-
-          const paymentDisplayNames: Record<string, string> = {
-            'stripe': 'Stripe',
-            'paypal': 'PayPal',
-            'square': 'Square',
-            'authorize-net': 'Authorize.net',
-            'amazon-pay': 'Amazon Pay',
-            'apple-pay': 'Apple Pay',
-            'bank-transfer': 'Bank Transfer'
-          };
-
-          crmIntegration.selectedPaymentGateways.forEach(gateway => {
-            if (gateway === 'custom') {
-              if (crmIntegration.customPaymentGatewayNames && crmIntegration.customPaymentGatewayNames.length > 0) {
-                crmIntegration.customPaymentGatewayNames.filter(name => name.trim()).forEach(customName => {
-                  doc.text(`• ${customName}`, margin + 5, yPosition);
-                  yPosition += lineHeight;
-                });
-              }
-            } else {
-              doc.text(`• ${paymentDisplayNames[gateway] || gateway}`, margin + 5, yPosition);
-              yPosition += lineHeight;
-            }
-          });
-          yPosition += 3;
-        }
-
-        // API Integrations
-        if (crmIntegration.apiIntegrations?.trim()) {
-          doc.setFont('helvetica', 'bold');
-          doc.text('API Integrations:', margin, yPosition);
-          yPosition += lineHeight;
-          doc.setFont('helvetica', 'normal');
-          const apiLines = doc.splitTextToSize(crmIntegration.apiIntegrations, maxWidth);
-          doc.text(apiLines, margin, yPosition);
-          yPosition += lineHeight * apiLines.length + 3;
-        }
-
-        // Automation Platforms
-        if (crmIntegration.selectedAutomationPlatforms?.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          doc.text('Automation Platforms:', margin, yPosition);
-          yPosition += lineHeight;
-          doc.setFont('helvetica', 'normal');
-
-          const automationDisplayNames: Record<string, string> = {
-            'zapier': 'Zapier',
-            'make-integromat': 'Make (Integromat)',
-            'microsoft-power-automate': 'Microsoft Power Automate',
-            'ifttt': 'IFTTT',
-            'pipedream': 'Pipedream',
-            'workato': 'Workato'
-          };
-
-          crmIntegration.selectedAutomationPlatforms.forEach(platform => {
-            doc.text(`• ${automationDisplayNames[platform] || platform}`, margin + 5, yPosition);
-            yPosition += lineHeight;
-          });
-          yPosition += 3;
-        }
-
-        // Engagement Features
-        if (crmIntegration.selectedEngagementFeatures?.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          doc.text('Engagement Features:', margin, yPosition);
-          yPosition += lineHeight;
-          doc.setFont('helvetica', 'normal');
-
-          const engagementDisplayNames: Record<string, string> = {
-            'live-chat-intercom-drift': 'Live Chat (Intercom, Drift, etc.)',
-            'helpdesk-zendesk-freshdesk': 'Helpdesk (Zendesk, Freshdesk, etc.)',
-            'social-media-integration': 'Social Media Integration',
-            'review-management': 'Review Management',
-            'loyalty-programs': 'Loyalty Programs',
-            'referral-systems': 'Referral Systems'
-          };
-
-          crmIntegration.selectedEngagementFeatures.forEach(feature => {
-            doc.text(`• ${engagementDisplayNames[feature] || feature}`, margin + 5, yPosition);
-            yPosition += lineHeight;
-          });
-          yPosition += 3;
-        }
-
-        // Advanced Features
-        if (crmIntegration.selectedAdvancedFeatures?.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          doc.text('Advanced Features:', margin, yPosition);
-          yPosition += lineHeight;
-          doc.setFont('helvetica', 'normal');
-
-          const advancedDisplayNames: Record<string, string> = {
-            'multilingual-translation-support': 'Multilingual / Translation Support',
-            'seo-tools-meta-sitemap-schema': 'SEO Tools (meta tags, sitemap, schema)',
-            'analytics-integration-ga4-hotjar': 'Analytics Integration (GA4, Hotjar, etc.)',
-            'security-features-ssl-captcha-2fa': 'Security Features (SSL, Captcha, 2FA)',
-            'custom-forms-workflows': 'Custom Forms & Workflows',
-            'chatbots-ai-powered-scripted': 'Chatbots (AI-powered or scripted)'
-          };
-
-          crmIntegration.selectedAdvancedFeatures.forEach(feature => {
-            doc.text(`• ${advancedDisplayNames[feature] || feature}`, margin + 5, yPosition);
-            yPosition += lineHeight;
-          });
-          yPosition += 3;
-        }
-
-        // E-Commerce Features
-        if (crmIntegration.selectedECommerceFeatures?.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          doc.text('E-Commerce Features:', margin, yPosition);
-          yPosition += lineHeight;
-          doc.setFont('helvetica', 'normal');
-
-          const ecommerceDisplayNames: Record<string, string> = {
-            'online-store-shopify-woocommerce': 'Online Store (Shopify / WooCommerce)',
-            'product-catalog': 'Product Catalog',
-            'shopping-cart-checkout': 'Shopping Cart & Checkout',
-            'digital-downloads': 'Digital Downloads',
-            'inventory-management': 'Inventory Management',
-            'subscription-products': 'Subscription Products',
-            'multi-currency-support': 'Multi-Currency Support',
-            'discount-codes-coupons': 'Discount Codes / Coupons'
-          };
-
-          crmIntegration.selectedECommerceFeatures.forEach(feature => {
-            doc.text(`• ${ecommerceDisplayNames[feature] || feature}`, margin + 5, yPosition);
-            yPosition += lineHeight;
-          });
-          yPosition += 3;
-        }
-
-        yPosition += 5;
-      }
-
-      // User Accounts & Membership
-      if (userAccountsMembership && (userAccountsMembership.registrationLogin || userAccountsMembership.userDashboardNeeded || (userAccountsMembership.predefinedRoles?.length > 0 || userAccountsMembership.customRoles?.length > 0) || userAccountsMembership.membershipSubscriptionSystem)) {
-        if (yPosition > 220) {
-          doc.addPage();
-          yPosition = 20;
-        }
-
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('User Accounts & Membership', margin, yPosition);
-        yPosition += lineHeight;
-
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-
-        if (userAccountsMembership.registrationLogin) {
-          doc.text('• User Registration & Login: Yes', margin, yPosition);
-          yPosition += lineHeight;
-        }
-
-        if (userAccountsMembership.userDashboardNeeded) {
-          doc.text('• User Dashboard: Yes', margin, yPosition);
-          yPosition += lineHeight;
-
-          if (userAccountsMembership.userDashboardFeatures?.trim()) {
-            const dashboardLines = doc.splitTextToSize(`  Dashboard Features: ${userAccountsMembership.userDashboardFeatures}`, maxWidth);
-            doc.text(dashboardLines, margin, yPosition);
-            yPosition += lineHeight * dashboardLines.length;
-          }
-        }
-
-        if (userAccountsMembership.predefinedRoles && userAccountsMembership.predefinedRoles.length > 0) {
-          doc.text('Predefined User Roles:', margin, yPosition);
-          yPosition += lineHeight;
-
-          const roleDisplayNames: Record<string, string> = {
-            'admin': 'Administrator',
-            'editor': 'Editor',
-            'contributor': 'Contributor',
-            'subscriber': 'Subscriber',
-            'customer': 'Customer',
-            'member': 'Member',
-            'moderator': 'Moderator',
-            'guest': 'Guest'
-          };
-
-          userAccountsMembership.predefinedRoles.forEach(role => {
-            doc.text(`• ${roleDisplayNames[role] || role}`, margin + 5, yPosition);
-            yPosition += lineHeight;
-          });
-        }
-
-        if (userAccountsMembership.customRoles && userAccountsMembership.customRoles.length > 0) {
-          doc.text('Custom User Roles:', margin, yPosition);
-          yPosition += lineHeight;
-
-          userAccountsMembership.customRoles.forEach(role => {
-            const roleText = role.description ? `${role.name} (${role.description})` : role.name;
-            const roleLines = doc.splitTextToSize(`• ${roleText}`, maxWidth - 5);
-            doc.text(roleLines, margin + 5, yPosition);
-            yPosition += lineHeight * roleLines.length;
-          });
-        }
-
-        if (userAccountsMembership.membershipSubscriptionSystem) {
-          doc.text('• Membership/Subscription System: Yes', margin, yPosition);
-          yPosition += lineHeight;
-
-          if (userAccountsMembership.membershipDetails?.trim()) {
-            const membershipLines = doc.splitTextToSize(`  Details: ${userAccountsMembership.membershipDetails}`, maxWidth);
-            doc.text(membershipLines, margin, yPosition);
-            yPosition += lineHeight * membershipLines.length;
-          }
-        }
-
-        yPosition += 5;
-      }
-
-      // Uploaded Media Files
-      if (mediaFiles && mediaFiles.length > 0) {
-        if (yPosition > 240) {
-          doc.addPage();
-          yPosition = 20;
-        }
-
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Uploaded Media Files', margin, yPosition);
-        yPosition += lineHeight;
-
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-
-        mediaFiles.forEach((file, index) => {
-          const fileSize = (file.size / 1024 / 1024).toFixed(2);
-          doc.text(`• ${file.name} (${fileSize} MB)`, margin, yPosition);
-          yPosition += lineHeight;
-        });
-
-        yPosition += 5;
-      }
-
-      // Design Preferences
-      if (designPreferences.selectedStyle) {
-        if (yPosition > 250) {
-          doc.addPage();
-          yPosition = 20;
-        }
-
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Design Preferences', margin, yPosition);
-        yPosition += lineHeight;
-
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Design Style: ${designPreferences.selectedStyle}`, margin, yPosition);
-        yPosition += lineHeight;
-
-        // Preferred Font
-        if (designPreferences.preferredFont) {
-          doc.text(`Preferred Font: ${designPreferences.preferredFont}`, margin, yPosition);
-          yPosition += lineHeight;
-        }
-
-        // Color Scheme
-        const hasColors = designPreferences.primaryColor || designPreferences.secondaryColor ||
-          designPreferences.accentColor || designPreferences.backgroundColor ||
-          designPreferences.textColor;
-
-        if (hasColors) {
-          doc.text('Color Scheme:', margin, yPosition);
-          yPosition += lineHeight;
-
-          // Primary Color with visual preview
-          if (designPreferences.primaryColor) {
-            doc.text(`• Primary: ${designPreferences.primaryColor}`, margin + 5, yPosition);
-            // Add a small colored rectangle
-            doc.setFillColor(designPreferences.primaryColor);
-            doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
-            yPosition += lineHeight;
-          }
-
-          // Secondary Color with visual preview
-          if (designPreferences.secondaryColor) {
-            doc.text(`• Secondary: ${designPreferences.secondaryColor}`, margin + 5, yPosition);
-            doc.setFillColor(designPreferences.secondaryColor);
-            doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
-            yPosition += lineHeight;
-          }
-
-          // Accent Color with visual preview
-          if (designPreferences.accentColor) {
-            doc.text(`• Accent: ${designPreferences.accentColor}`, margin + 5, yPosition);
-            doc.setFillColor(designPreferences.accentColor);
-            doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
-            yPosition += lineHeight;
-          }
-
-          // Background Color with visual preview
-          if (designPreferences.backgroundColor) {
-            doc.text(`• Background: ${designPreferences.backgroundColor}`, margin + 5, yPosition);
-            doc.setFillColor(designPreferences.backgroundColor);
-            doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
-            // Add border for light backgrounds
-            doc.setDrawColor(200, 200, 200);
-            doc.rect(margin + 85, yPosition - 4, 8, 6, 'S');
-            yPosition += lineHeight;
-          }
-
-          // Text Color with visual preview
-          if (designPreferences.textColor) {
-            doc.text(`• Text: ${designPreferences.textColor}`, margin + 5, yPosition);
-            doc.setFillColor(designPreferences.textColor);
-            doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
-            yPosition += lineHeight;
-          }
-
-          yPosition += 3; // Add spacing after colors
-        }
-
-        if (designPreferences.inspirationLinks.length > 0) {
-          doc.text('Inspiration Links:', margin, yPosition);
-          yPosition += lineHeight;
-          designPreferences.inspirationLinks.forEach(link => {
-            doc.text(`• ${link}`, margin + 5, yPosition);
-            yPosition += lineHeight;
-          });
-        }
-
-        if (designPreferences.additionalNotes) {
-          const notesLines = doc.splitTextToSize(`Additional Notes: ${designPreferences.additionalNotes}`, maxWidth);
-          doc.text(notesLines, margin, yPosition);
-          yPosition += lineHeight * notesLines.length;
-        }
-      }
-
-      // Generated Content Full Details
-      if (generatedContent.length > 0) {
-        if (yPosition > 220) {
-          doc.addPage();
-          yPosition = 20;
-        }
-
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Generated Content', margin, yPosition);
-        yPosition += lineHeight * 2;
-
-        generatedContent.forEach((content, index) => {
-          // Check if we need a new page for each content section
-          if (yPosition > 200) {
+        // Image Requirements
+        if (imageRequirements) {
+          // Check if we need a new page
+          if (yPosition > 250) {
             doc.addPage();
             yPosition = 20;
           }
-
-          doc.setFontSize(14);
+          
+          doc.setFontSize(16);
           doc.setFont('helvetica', 'bold');
-          doc.text(`${content.pageName} Page`, margin, yPosition);
+          doc.text('Image & Media Requirements', margin, yPosition);
           yPosition += lineHeight;
-
-          doc.setFontSize(10);
+          
+          doc.setFontSize(12);
           doc.setFont('helvetica', 'normal');
-          // Split content into multiple lines
-          const contentLines = doc.splitTextToSize(content.content, maxWidth);
-          doc.text(contentLines, margin, yPosition);
-          yPosition += lineHeight * contentLines.length + 10;
-        });
-      }
-
-      // Footer
-      const currentDate = new Date().toLocaleDateString();
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'italic');
-      doc.text(`Generated on ${currentDate}`, margin, 280);
-
-      // Helper function to sanitize filenames for cross-platform compatibility
-      const sanitizeFilename = (filename: string) => {
-        return filename.replace(/[\\/:*?"<>|]/g, '_').trim();
-      };
-
-      const sanitizedBusinessName = sanitizeFilename(businessName || 'Creative Brief');
-
-      // Generate PDF blob for explicit local download
-      const pdfBlob = doc.output('blob');
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-
-      // Create download link and trigger download
-      const pdfLink = document.createElement('a');
-      pdfLink.href = pdfUrl;
-      pdfLink.download = `${sanitizedBusinessName}_${currentDate.replace(/\//g, '-')}.pdf`;
-      pdfLink.style.display = 'none';
-      document.body.appendChild(pdfLink);
-      pdfLink.click();
-      document.body.removeChild(pdfLink);
-
-      // Clean up the blob URL
-      setTimeout(() => {
-        URL.revokeObjectURL(pdfUrl);
-      }, 1000);
-
-      // Create and download zip file with uploaded images and logos if any exist
-      const imageFiles = mediaFiles ? mediaFiles.filter(file => file.type.startsWith('image/')) : [];
-      const hasLogo = logoFile || selectedLogo;
-
-      if (imageFiles.length > 0 || hasLogo) {
-        console.log('Creating zip file with uploaded images and logos...');
-        const zip = new JSZip();
-        let imagesAdded = 0;
-        let logosAdded = 0;
-
-        // Add each image file to the zip
-        for (const file of imageFiles) {
-          zip.file(file.name, file);
-          imagesAdded++;
+          doc.text(`Logo Needs: ${imageRequirements.logoNeeds}`, margin, yPosition);
+          yPosition += lineHeight;
+          
+          if (imageRequirements.logoDescription) {
+            const logoDescLines = doc.splitTextToSize(`Logo Description: ${imageRequirements.logoDescription}`, maxWidth);
+            doc.text(logoDescLines, margin, yPosition);
+            yPosition += lineHeight * logoDescLines.length;
+          }
+          
+          doc.text('Photo Types Needed:', margin, yPosition);
+          yPosition += lineHeight;
+          if (imageRequirements.teamPhotos) doc.text('• Team/Staff Photos', margin + 5, yPosition), yPosition += lineHeight;
+          if (imageRequirements.productPhotos) doc.text('• Product Photos', margin + 5, yPosition), yPosition += lineHeight;
+          if (imageRequirements.facilityPhotos) doc.text('• Facility Photos', margin + 5, yPosition), yPosition += lineHeight;
+          
+          if (imageRequirements.preferredPhotoStyle) {
+            doc.text(`Photo Style: ${imageRequirements.preferredPhotoStyle}`, margin, yPosition);
+            yPosition += lineHeight;
+          }
+          
+          if (imageRequirements.stockPhotoPreference) {
+            doc.text(`Stock Photo Preference: ${imageRequirements.stockPhotoPreference}`, margin, yPosition);
+            yPosition += lineHeight;
+          }
+          
+          if (imageRequirements.specificImages && imageRequirements.specificImages.length > 0) {
+            doc.text('Specific Images Needed:', margin, yPosition);
+            yPosition += lineHeight;
+            imageRequirements.specificImages.forEach(image => {
+              const imageLines = doc.splitTextToSize(`• ${image}`, maxWidth - 5);
+              doc.text(imageLines, margin + 5, yPosition);
+              yPosition += lineHeight * imageLines.length;
+            });
+          }
+          yPosition += 5;
         }
 
-        // Add uploaded logo file if it exists
-        if (logoFile && logoFile instanceof File) {
-          zip.file(`logo_uploaded_${logoFile.name}`, logoFile);
-          logosAdded++;
+        // Integrations
+        if (crmIntegration && (crmIntegration.selectedCrms?.length > 0 || crmIntegration.selectedMarketingAutomation?.length > 0 || crmIntegration.selectedPaymentGateways?.length > 0 || crmIntegration.apiIntegrations?.trim() || crmIntegration.selectedAutomationPlatforms?.length > 0 || crmIntegration.selectedEngagementFeatures?.length > 0 || crmIntegration.selectedAdvancedFeatures?.length > 0 || crmIntegration.selectedECommerceFeatures?.length > 0)) {
+          if (yPosition > 220) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Integrations', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+
+          // CRM Platforms
+          if (crmIntegration.selectedCrms?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('CRM Platforms:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const crmDisplayNames: Record<string, string> = {
+              'salesforce': 'Salesforce',
+              'hubspot': 'HubSpot',
+              'zoho-crm': 'Zoho CRM',
+              'pipedrive': 'Pipedrive',
+              'microsoft-dynamics-365': 'Microsoft Dynamics 365',
+              'freshsales': 'Freshsales',
+              'ontraport': 'Ontraport',
+              'nimble': 'Nimble',
+              'nutshell': 'Nutshell',
+              'membrain': 'Membrain',
+              'sugarcrm': 'SugarCRM'
+            };
+            
+            crmIntegration.selectedCrms.forEach(crm => {
+              if (crm === 'custom') {
+                if (crmIntegration.customCrmNames && crmIntegration.customCrmNames.length > 0) {
+                  crmIntegration.customCrmNames.filter(name => name.trim()).forEach(customName => {
+                    doc.text(`• ${customName}`, margin + 5, yPosition);
+                    yPosition += lineHeight;
+                  });
+                }
+              } else {
+                doc.text(`• ${crmDisplayNames[crm] || crm}`, margin + 5, yPosition);
+                yPosition += lineHeight;
+              }
+            });
+            yPosition += 3;
+          }
+
+          // Marketing Automation
+          if (crmIntegration.selectedMarketingAutomation?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Marketing Automation:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const marketingDisplayNames: Record<string, string> = {
+              'klaviyo': 'Klaviyo',
+              'hubspot': 'HubSpot',
+              'activecampaign': 'ActiveCampaign',
+              'mailchimp': 'Mailchimp',
+              'brevo': 'Brevo',
+              'marketo-engage': 'Marketo Engage',
+              'pardot': 'Pardot'
+            };
+            
+            crmIntegration.selectedMarketingAutomation.forEach(platform => {
+              if (platform === 'custom') {
+                if (crmIntegration.customMarketingAutomationNames && crmIntegration.customMarketingAutomationNames.length > 0) {
+                  crmIntegration.customMarketingAutomationNames.filter(name => name.trim()).forEach(customName => {
+                    doc.text(`• ${customName}`, margin + 5, yPosition);
+                    yPosition += lineHeight;
+                  });
+                }
+              } else {
+                doc.text(`• ${marketingDisplayNames[platform] || platform}`, margin + 5, yPosition);
+                yPosition += lineHeight;
+              }
+            });
+            yPosition += 3;
+          }
+
+          // Payment Gateways
+          if (crmIntegration.selectedPaymentGateways?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Payment Gateways:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const paymentDisplayNames: Record<string, string> = {
+              'stripe': 'Stripe',
+              'paypal': 'PayPal',
+              'square': 'Square',
+              'authorize-net': 'Authorize.net',
+              'amazon-pay': 'Amazon Pay',
+              'apple-pay': 'Apple Pay',
+              'bank-transfer': 'Bank Transfer'
+            };
+            
+            crmIntegration.selectedPaymentGateways.forEach(gateway => {
+              if (gateway === 'custom') {
+                if (crmIntegration.customPaymentGatewayNames && crmIntegration.customPaymentGatewayNames.length > 0) {
+                  crmIntegration.customPaymentGatewayNames.filter(name => name.trim()).forEach(customName => {
+                    doc.text(`• ${customName}`, margin + 5, yPosition);
+                    yPosition += lineHeight;
+                  });
+                }
+              } else {
+                doc.text(`• ${paymentDisplayNames[gateway] || gateway}`, margin + 5, yPosition);
+                yPosition += lineHeight;
+              }
+            });
+            yPosition += 3;
+          }
+
+          // API Integrations
+          if (crmIntegration.apiIntegrations?.trim()) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('API Integrations:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            const apiLines = doc.splitTextToSize(crmIntegration.apiIntegrations, maxWidth);
+            doc.text(apiLines, margin, yPosition);
+            yPosition += lineHeight * apiLines.length + 3;
+          }
+
+          // Automation Platforms
+          if (crmIntegration.selectedAutomationPlatforms?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Automation Platforms:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const automationDisplayNames: Record<string, string> = {
+              'zapier': 'Zapier',
+              'make-integromat': 'Make (Integromat)',
+              'microsoft-power-automate': 'Microsoft Power Automate',
+              'ifttt': 'IFTTT',
+              'pipedream': 'Pipedream',
+              'workato': 'Workato'
+            };
+            
+            crmIntegration.selectedAutomationPlatforms.forEach(platform => {
+              doc.text(`• ${automationDisplayNames[platform] || platform}`, margin + 5, yPosition);
+              yPosition += lineHeight;
+            });
+            yPosition += 3;
+          }
+
+          // Engagement Features
+          if (crmIntegration.selectedEngagementFeatures?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Engagement Features:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const engagementDisplayNames: Record<string, string> = {
+              'live-chat-intercom-drift': 'Live Chat (Intercom, Drift, etc.)',
+              'helpdesk-zendesk-freshdesk': 'Helpdesk (Zendesk, Freshdesk, etc.)',
+              'social-media-integration': 'Social Media Integration',
+              'review-management': 'Review Management',
+              'loyalty-programs': 'Loyalty Programs',
+              'referral-systems': 'Referral Systems'
+            };
+            
+            crmIntegration.selectedEngagementFeatures.forEach(feature => {
+              doc.text(`• ${engagementDisplayNames[feature] || feature}`, margin + 5, yPosition);
+              yPosition += lineHeight;
+            });
+            yPosition += 3;
+          }
+
+          // Advanced Features
+          if (crmIntegration.selectedAdvancedFeatures?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Advanced Features:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const advancedDisplayNames: Record<string, string> = {
+              'multilingual-translation-support': 'Multilingual / Translation Support',
+              'seo-tools-meta-sitemap-schema': 'SEO Tools (meta tags, sitemap, schema)',
+              'analytics-integration-ga4-hotjar': 'Analytics Integration (GA4, Hotjar, etc.)',
+              'security-features-ssl-captcha-2fa': 'Security Features (SSL, Captcha, 2FA)',
+              'custom-forms-workflows': 'Custom Forms & Workflows',
+              'chatbots-ai-powered-scripted': 'Chatbots (AI-powered or scripted)'
+            };
+            
+            crmIntegration.selectedAdvancedFeatures.forEach(feature => {
+              doc.text(`• ${advancedDisplayNames[feature] || feature}`, margin + 5, yPosition);
+              yPosition += lineHeight;
+            });
+            yPosition += 3;
+          }
+
+          // E-Commerce Features
+          if (crmIntegration.selectedECommerceFeatures?.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('E-Commerce Features:', margin, yPosition);
+            yPosition += lineHeight;
+            doc.setFont('helvetica', 'normal');
+            
+            const ecommerceDisplayNames: Record<string, string> = {
+              'online-store-shopify-woocommerce': 'Online Store (Shopify / WooCommerce)',
+              'product-catalog': 'Product Catalog',
+              'shopping-cart-checkout': 'Shopping Cart & Checkout',
+              'digital-downloads': 'Digital Downloads',
+              'inventory-management': 'Inventory Management',
+              'subscription-products': 'Subscription Products',
+              'multi-currency-support': 'Multi-Currency Support',
+              'discount-codes-coupons': 'Discount Codes / Coupons'
+            };
+            
+            crmIntegration.selectedECommerceFeatures.forEach(feature => {
+              doc.text(`• ${ecommerceDisplayNames[feature] || feature}`, margin + 5, yPosition);
+              yPosition += lineHeight;
+            });
+            yPosition += 3;
+          }
+          
+          yPosition += 5;
         }
 
-        // Add AI-generated logo if it exists
-        if (selectedLogo && selectedLogo.dataUrl) {
-          try {
-            // Parse mime type from data URL for proper extension
-            const mimeMatch = selectedLogo.dataUrl.match(/^data:([^;]+);?/);
-            const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+        // User Accounts & Membership
+        if (userAccountsMembership && (userAccountsMembership.registrationLogin || userAccountsMembership.userDashboardNeeded || (userAccountsMembership.predefinedRoles?.length > 0 || userAccountsMembership.customRoles?.length > 0) || userAccountsMembership.membershipSubscriptionSystem)) {
+          if (yPosition > 220) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('User Accounts & Membership', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
 
-            let extension = 'png'; // default
-            if (mimeType.includes('jpeg') || mimeType.includes('jpg')) extension = 'jpg';
-            else if (mimeType.includes('png')) extension = 'png';
-            else if (mimeType.includes('webp')) extension = 'webp';
-            else if (mimeType.includes('svg')) extension = 'svg';
+          if (userAccountsMembership.registrationLogin) {
+            doc.text('• User Registration & Login: Yes', margin, yPosition);
+            yPosition += lineHeight;
+          }
 
-            // Convert data URL to blob
-            const response = await fetch(selectedLogo.dataUrl);
-            const logoBlob = await response.blob();
-
-            // Use blob type as fallback if data URL parsing failed
-            if (extension === 'png' && logoBlob.type && logoBlob.type !== 'image/png') {
-              if (logoBlob.type.includes('jpeg') || logoBlob.type.includes('jpg')) extension = 'jpg';
-              else if (logoBlob.type.includes('webp')) extension = 'webp';
-              else if (logoBlob.type.includes('svg')) extension = 'svg';
+          if (userAccountsMembership.userDashboardNeeded) {
+            doc.text('• User Dashboard: Yes', margin, yPosition);
+            yPosition += lineHeight;
+            
+            if (userAccountsMembership.userDashboardFeatures?.trim()) {
+              const dashboardLines = doc.splitTextToSize(`  Dashboard Features: ${userAccountsMembership.userDashboardFeatures}`, maxWidth);
+              doc.text(dashboardLines, margin, yPosition);
+              yPosition += lineHeight * dashboardLines.length;
             }
+          }
 
-            zip.file(`logo_generated.${extension}`, logoBlob);
-            logosAdded++;
-          } catch (logoError) {
-            console.log('Could not include AI-generated logo in zip:', logoError);
+          if (userAccountsMembership.predefinedRoles && userAccountsMembership.predefinedRoles.length > 0) {
+            doc.text('Predefined User Roles:', margin, yPosition);
+            yPosition += lineHeight;
+            
+            const roleDisplayNames: Record<string, string> = {
+              'admin': 'Administrator',
+              'editor': 'Editor',
+              'contributor': 'Contributor',
+              'subscriber': 'Subscriber',
+              'customer': 'Customer',
+              'member': 'Member',
+              'moderator': 'Moderator',
+              'guest': 'Guest'
+            };
+            
+            userAccountsMembership.predefinedRoles.forEach(role => {
+              doc.text(`• ${roleDisplayNames[role] || role}`, margin + 5, yPosition);
+              yPosition += lineHeight;
+            });
+          }
+
+          if (userAccountsMembership.customRoles && userAccountsMembership.customRoles.length > 0) {
+            doc.text('Custom User Roles:', margin, yPosition);
+            yPosition += lineHeight;
+            
+            userAccountsMembership.customRoles.forEach(role => {
+              const roleText = role.description ? `${role.name} (${role.description})` : role.name;
+              const roleLines = doc.splitTextToSize(`• ${roleText}`, maxWidth - 5);
+              doc.text(roleLines, margin + 5, yPosition);
+              yPosition += lineHeight * roleLines.length;
+            });
+          }
+
+          if (userAccountsMembership.membershipSubscriptionSystem) {
+            doc.text('• Membership/Subscription System: Yes', margin, yPosition);
+            yPosition += lineHeight;
+            
+            if (userAccountsMembership.membershipDetails?.trim()) {
+              const membershipLines = doc.splitTextToSize(`  Details: ${userAccountsMembership.membershipDetails}`, maxWidth);
+              doc.text(membershipLines, margin, yPosition);
+              yPosition += lineHeight * membershipLines.length;
+            }
+          }
+          
+          yPosition += 5;
+        }
+
+        // Uploaded Media Files
+        if (mediaFiles && mediaFiles.length > 0) {
+          if (yPosition > 240) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Uploaded Media Files', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          
+          mediaFiles.forEach((file, index) => {
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+            doc.text(`• ${file.name} (${fileSize} MB)`, margin, yPosition);
+            yPosition += lineHeight;
+          });
+          
+          yPosition += 5;
+        }
+
+        // Design Preferences
+        if (designPreferences.selectedStyle) {
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Design Preferences', margin, yPosition);
+          yPosition += lineHeight;
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Design Style: ${designPreferences.selectedStyle}`, margin, yPosition);
+          yPosition += lineHeight;
+          
+          // Preferred Font
+          if (designPreferences.preferredFont) {
+            doc.text(`Preferred Font: ${designPreferences.preferredFont}`, margin, yPosition);
+            yPosition += lineHeight;
+          }
+          
+          // Color Scheme
+          const hasColors = designPreferences.primaryColor || designPreferences.secondaryColor || 
+                          designPreferences.accentColor || designPreferences.backgroundColor || 
+                          designPreferences.textColor;
+          
+          if (hasColors) {
+            doc.text('Color Scheme:', margin, yPosition);
+            yPosition += lineHeight;
+            
+            // Primary Color with visual preview
+            if (designPreferences.primaryColor) {
+              doc.text(`• Primary: ${designPreferences.primaryColor}`, margin + 5, yPosition);
+              // Add a small colored rectangle
+              doc.setFillColor(designPreferences.primaryColor);
+              doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
+              yPosition += lineHeight;
+            }
+            
+            // Secondary Color with visual preview
+            if (designPreferences.secondaryColor) {
+              doc.text(`• Secondary: ${designPreferences.secondaryColor}`, margin + 5, yPosition);
+              doc.setFillColor(designPreferences.secondaryColor);
+              doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
+              yPosition += lineHeight;
+            }
+            
+            // Accent Color with visual preview
+            if (designPreferences.accentColor) {
+              doc.text(`• Accent: ${designPreferences.accentColor}`, margin + 5, yPosition);
+              doc.setFillColor(designPreferences.accentColor);
+              doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
+              yPosition += lineHeight;
+            }
+            
+            // Background Color with visual preview
+            if (designPreferences.backgroundColor) {
+              doc.text(`• Background: ${designPreferences.backgroundColor}`, margin + 5, yPosition);
+              doc.setFillColor(designPreferences.backgroundColor);
+              doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
+              // Add border for light backgrounds
+              doc.setDrawColor(200, 200, 200);
+              doc.rect(margin + 85, yPosition - 4, 8, 6, 'S');
+              yPosition += lineHeight;
+            }
+            
+            // Text Color with visual preview
+            if (designPreferences.textColor) {
+              doc.text(`• Text: ${designPreferences.textColor}`, margin + 5, yPosition);
+              doc.setFillColor(designPreferences.textColor);
+              doc.rect(margin + 85, yPosition - 4, 8, 6, 'F');
+              yPosition += lineHeight;
+            }
+            
+            yPosition += 3; // Add spacing after colors
+          }
+          
+          if (designPreferences.inspirationLinks.length > 0) {
+            doc.text('Inspiration Links:', margin, yPosition);
+            yPosition += lineHeight;
+            designPreferences.inspirationLinks.forEach(link => {
+              doc.text(`• ${link}`, margin + 5, yPosition);
+              yPosition += lineHeight;
+            });
+          }
+          
+          if (designPreferences.additionalNotes) {
+            const notesLines = doc.splitTextToSize(`Additional Notes: ${designPreferences.additionalNotes}`, maxWidth);
+            doc.text(notesLines, margin, yPosition);
+            yPosition += lineHeight * notesLines.length;
           }
         }
 
-        const totalFiles = imagesAdded + logosAdded;
-
-        // Only generate and download zip if files were actually added
-        if (totalFiles > 0) {
-          const zipBlob = await zip.generateAsync({ type: "blob" });
-          const zipUrl = URL.createObjectURL(zipBlob);
-          const zipLink = document.createElement('a');
-          zipLink.href = zipUrl;
-          zipLink.download = `${sanitizedBusinessName}_Images_${currentDate.replace(/\//g, '-')}.zip`;
-          zipLink.style.display = 'none';
-          document.body.appendChild(zipLink);
-          zipLink.click();
-          document.body.removeChild(zipLink);
-
-          // Clean up the blob URL
-          setTimeout(() => {
-            URL.revokeObjectURL(zipUrl);
-          }, 1000);
-
-          // Create descriptive message based on what was included
-          let description = "Your creative brief PDF and ";
-          if (imagesAdded > 0 && logosAdded > 0) {
-            description += `${imagesAdded} image${imagesAdded > 1 ? 's' : ''} and ${logosAdded} logo${logosAdded > 1 ? 's' : ''} zip have been exported.`;
-          } else if (imagesAdded > 0) {
-            description += `${imagesAdded} image${imagesAdded > 1 ? 's' : ''} zip have been exported.`;
-          } else {
-            description += `${logosAdded} logo${logosAdded > 1 ? 's' : ''} zip have been exported.`;
+        // Generated Content Full Details
+        if (generatedContent.length > 0) {
+          if (yPosition > 220) {
+            doc.addPage();
+            yPosition = 20;
           }
-
-          toast({
-            title: "Files Downloaded!",
-            description: description
+          
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Generated Content', margin, yPosition);
+          yPosition += lineHeight * 2;
+          
+          generatedContent.forEach((content, index) => {
+            // Check if we need a new page for each content section
+            if (yPosition > 200) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${content.pageName} Page`, margin, yPosition);
+            yPosition += lineHeight;
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            // Split content into multiple lines
+            const contentLines = doc.splitTextToSize(content.content, maxWidth);
+            doc.text(contentLines, margin, yPosition);
+            yPosition += lineHeight * contentLines.length + 10;
           });
+        }
+
+        // Footer
+        const currentDate = new Date().toLocaleDateString();
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'italic');
+        doc.text(`Generated on ${currentDate}`, margin, 280);
+
+        // Helper function to sanitize filenames for cross-platform compatibility
+        const sanitizeFilename = (filename: string) => {
+          return filename.replace(/[\\/:*?"<>|]/g, '_').trim();
+        };
+
+        const sanitizedBusinessName = sanitizeFilename(businessName || 'Creative Brief');
+
+        // Generate PDF blob for explicit local download
+        const pdfBlob = doc.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        
+        // Create download link and trigger download
+        const pdfLink = document.createElement('a');
+        pdfLink.href = pdfUrl;
+        pdfLink.download = `${sanitizedBusinessName}_${currentDate.replace(/\//g, '-')}.pdf`;
+        pdfLink.style.display = 'none';
+        document.body.appendChild(pdfLink);
+        pdfLink.click();
+        document.body.removeChild(pdfLink);
+        
+        // Clean up the blob URL
+        setTimeout(() => {
+          URL.revokeObjectURL(pdfUrl);
+        }, 1000);
+        
+        // Create and download zip file with uploaded images and logos if any exist
+        const imageFiles = mediaFiles ? mediaFiles.filter(file => file.type.startsWith('image/')) : [];
+        const hasLogo = logoFile || selectedLogo;
+        
+        if (imageFiles.length > 0 || hasLogo) {
+          console.log('Creating zip file with uploaded images and logos...');
+          const zip = new JSZip();
+          let imagesAdded = 0;
+          let logosAdded = 0;
+          
+          // Add each image file to the zip
+          for (const file of imageFiles) {
+            zip.file(file.name, file);
+            imagesAdded++;
+          }
+          
+          // Add uploaded logo file if it exists
+          if (logoFile && logoFile instanceof File) {
+            zip.file(`logo_uploaded_${logoFile.name}`, logoFile);
+            logosAdded++;
+          }
+          
+          // Add AI-generated logo if it exists
+          if (selectedLogo && selectedLogo.dataUrl) {
+            try {
+              // Parse mime type from data URL for proper extension
+              const mimeMatch = selectedLogo.dataUrl.match(/^data:([^;]+);?/);
+              const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+              
+              let extension = 'png'; // default
+              if (mimeType.includes('jpeg') || mimeType.includes('jpg')) extension = 'jpg';
+              else if (mimeType.includes('png')) extension = 'png';
+              else if (mimeType.includes('webp')) extension = 'webp';
+              else if (mimeType.includes('svg')) extension = 'svg';
+              
+              // Convert data URL to blob
+              const response = await fetch(selectedLogo.dataUrl);
+              const logoBlob = await response.blob();
+              
+              // Use blob type as fallback if data URL parsing failed
+              if (extension === 'png' && logoBlob.type && logoBlob.type !== 'image/png') {
+                if (logoBlob.type.includes('jpeg') || logoBlob.type.includes('jpg')) extension = 'jpg';
+                else if (logoBlob.type.includes('webp')) extension = 'webp';
+                else if (logoBlob.type.includes('svg')) extension = 'svg';
+              }
+              
+              zip.file(`logo_generated.${extension}`, logoBlob);
+              logosAdded++;
+            } catch (logoError) {
+              console.log('Could not include AI-generated logo in zip:', logoError);
+            }
+          }
+          
+          const totalFiles = imagesAdded + logosAdded;
+          
+          // Only generate and download zip if files were actually added
+          if (totalFiles > 0) {
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            const zipUrl = URL.createObjectURL(zipBlob);
+            const zipLink = document.createElement('a');
+            zipLink.href = zipUrl;
+            zipLink.download = `${sanitizedBusinessName}_Images_${currentDate.replace(/\//g, '-')}.zip`;
+            zipLink.style.display = 'none';
+            document.body.appendChild(zipLink);
+            zipLink.click();
+            document.body.removeChild(zipLink);
+            
+            // Clean up the blob URL
+            setTimeout(() => {
+              URL.revokeObjectURL(zipUrl);
+            }, 1000);
+            
+            // Create descriptive message based on what was included
+            let description = "Your creative brief PDF and ";
+            if (imagesAdded > 0 && logosAdded > 0) {
+              description += `${imagesAdded} image${imagesAdded > 1 ? 's' : ''} and ${logosAdded} logo${logosAdded > 1 ? 's' : ''} zip have been exported.`;
+            } else if (imagesAdded > 0) {
+              description += `${imagesAdded} image${imagesAdded > 1 ? 's' : ''} zip have been exported.`;
+            } else {
+              description += `${logosAdded} logo${logosAdded > 1 ? 's' : ''} zip have been exported.`;
+            }
+            
+            toast({
+              title: "Files Downloaded!",
+              description: description
+            });
+          } else {
+            toast({
+              title: "PDF Downloaded!",
+              description: "Your creative brief has been exported as a PDF. No images or logos were available to include in a zip file."
+            });
+          }
         } else {
           toast({
             title: "PDF Downloaded!",
-            description: "Your creative brief has been exported as a PDF. No images or logos were available to include in a zip file."
+            description: "Your creative brief has been exported as a PDF."
           });
         }
-      } else {
-        toast({
-          title: "PDF Downloaded!",
-          description: "Your creative brief has been exported as a PDF."
-        });
-      }
     } catch (error) {
       console.error('PDF Export Error:', error);
       toast({
@@ -1759,7 +1754,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
   const submitProject = async () => {
     console.log('Submitting project...');
-
+    
     try {
       // Prepare submission data
       const submissionData = {
@@ -1777,10 +1772,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         imageRequirements,
         designPreferences
       };
-      console.log('submissionData', submissionData)
+
       // Submit to backend
-      //const response = await apiRequest('POST', '/api/project/submit', submissionData);
-      const response = await apiRequest('POST', apiUrl, submissionData);
+      const response = await apiRequest('POST', '/api/project/submit', submissionData);
 
       if (!response.ok) {
         const error = await response.json();
@@ -1788,7 +1782,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       }
 
       const result = await response.json();
-
+      
       toast({
         title: "Project Submitted!",
         description: result.message || "Your creative brief has been submitted successfully."
@@ -1811,7 +1805,6 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-      
         return (
           <Card>
             <CardContent className="pt-8 text-center">
@@ -1891,171 +1884,171 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                 <CardTitle>Tell Us About Your Business</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* First: Business Description */}
+              {/* First: Business Description */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Business Description *</label>
+                <textarea
+                  placeholder="Describe what your business does, who you serve, and what makes you unique..."
+                  value={businessDescription}
+                  onChange={(e) => setBusinessDescription(e.target.value)}
+                  rows={4}
+                  className="w-full p-3 border rounded-md"
+                  data-testid="textarea-business-description"
+                />
+              </div>
+
+              {/* Second: Ask if they have a business name */}
+              {businessDescription.trim() && (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Business Description *</label>
-                  <textarea
-                    placeholder="Describe what your business does, who you serve, and what makes you unique..."
-                    value={businessDescription}
-                    onChange={(e) => setBusinessDescription(e.target.value)}
-                    rows={4}
+                  <label className="text-sm font-medium mb-3 block">Do you have a business name? *</label>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => {
+                        setHasBusinessName(true);
+                        setGeneratedNames([]);
+                      }}
+                      className={`w-full p-3 text-left border rounded-md hover-elevate ${hasBusinessName === true ? 'border-primary bg-primary/10' : 'border-border'}`}
+                      data-testid="button-has-business-name-yes"
+                    >
+                      <span className="font-medium">Yes, I have a business name</span>
+                      <p className="text-sm text-muted-foreground mt-1">I'll enter my existing business name</p>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setHasBusinessName(false);
+                        setBusinessName("");
+                      }}
+                      className={`w-full p-3 text-left border rounded-md hover-elevate ${hasBusinessName === false ? 'border-primary bg-primary/10' : 'border-border'}`}
+                      data-testid="button-has-business-name-no"
+                    >
+                      <span className="font-medium">No, I need help creating one</span>
+                      <p className="text-sm text-muted-foreground mt-1">Generate suggestions based on my business description</p>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Third: Business Name Input (if they have one) */}
+              {hasBusinessName === true && (
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Business Name *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Acme Design Studio"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
                     className="w-full p-3 border rounded-md"
-                    data-testid="textarea-business-description"
+                    data-testid="input-business-name"
                   />
                 </div>
+              )}
 
-                {/* Second: Ask if they have a business name */}
-                {businessDescription.trim() && (
-                  <div>
-                    <label className="text-sm font-medium mb-3 block">Do you have a business name? *</label>
-                    <div className="space-y-3">
-                      <button
-                        onClick={() => {
-                          setHasBusinessName(true);
-                          setGeneratedNames([]);
-                        }}
-                        className={`w-full p-3 text-left border rounded-md hover-elevate ${hasBusinessName === true ? 'border-primary bg-primary/10' : 'border-border'}`}
-                        data-testid="button-has-business-name-yes"
-                      >
-                        <span className="font-medium">Yes, I have a business name</span>
-                        <p className="text-sm text-muted-foreground mt-1">I'll enter my existing business name</p>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setHasBusinessName(false);
-                          setBusinessName("");
-                        }}
-                        className={`w-full p-3 text-left border rounded-md hover-elevate ${hasBusinessName === false ? 'border-primary bg-primary/10' : 'border-border'}`}
-                        data-testid="button-has-business-name-no"
-                      >
-                        <span className="font-medium">No, I need help creating one</span>
-                        <p className="text-sm text-muted-foreground mt-1">Generate suggestions based on my business description</p>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Third: Business Name Input (if they have one) */}
-                {hasBusinessName === true && (
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Business Name *</label>
+              {/* Fourth: Name Generation (if they don't have one) */}
+              {hasBusinessName === false && (
+                <div>
+                  <label className="text-sm font-medium mb-3 block">Business Name Generation *</label>
+                  
+                  {/* Business Name Idea Input */}
+                  <div className="mb-4">
+                    <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                      Do you have a business name idea? (Optional)
+                    </label>
                     <input
                       type="text"
-                      placeholder="e.g. Acme Design Studio"
-                      value={businessName}
-                      onChange={(e) => setBusinessName(e.target.value)}
+                      placeholder="e.g. 'Creative Edge' or 'Digital Boost' - we'll generate variations"
+                      value={businessNameIdea}
+                      onChange={(e) => setBusinessNameIdea(e.target.value)}
                       className="w-full p-3 border rounded-md"
-                      data-testid="input-business-name"
+                      data-testid="input-business-name-idea"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      If you have a rough idea for a name, enter it here and we'll generate creative variations
+                    </p>
                   </div>
-                )}
 
-                {/* Fourth: Name Generation (if they don't have one) */}
-                {hasBusinessName === false && (
-                  <div>
-                    <label className="text-sm font-medium mb-3 block">Business Name Generation *</label>
-
-                    {/* Business Name Idea Input */}
-                    <div className="mb-4">
-                      <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                        Do you have a business name idea? (Optional)
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. 'Creative Edge' or 'Digital Boost' - we'll generate variations"
-                        value={businessNameIdea}
-                        onChange={(e) => setBusinessNameIdea(e.target.value)}
-                        className="w-full p-3 border rounded-md"
-                        data-testid="input-business-name-idea"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        If you have a rough idea for a name, enter it here and we'll generate creative variations
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="text-sm font-medium">AI-Generated Names</label>
-                      <Button
-                        onClick={generateBusinessNames}
-                        disabled={isGeneratingNames || (!businessDescription.trim() && !businessNameIdea.trim())}
-                        size="sm"
-                        variant="outline"
-                        data-testid="button-generate-names"
-                      >
-                        {isGeneratingNames ? "Generating..." : "Generate Names"}
-                      </Button>
-                    </div>
-
-                    {generatedNames.length === 0 && !isGeneratingNames && (
-                      <div className="p-4 border rounded-md text-center text-muted-foreground">
-                        <div className="space-y-2">
-                          <p>Click "Generate Names" to get AI-powered suggestions</p>
-                          <p className="text-xs">
-                            {businessNameIdea.trim()
-                              ? `Based on your idea "${businessNameIdea}" and business description`
-                              : "Based on your business description"
-                            }
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {isGeneratingNames && (
-                      <div className="p-4 border rounded-md text-center">
-                        <Sparkles className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
-                        <p className="text-sm text-muted-foreground">
-                          {businessNameIdea.trim()
-                            ? `Generating creative variations of "${businessNameIdea}"...`
-                            : "Generating creative names for your business..."
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-medium">AI-Generated Names</label>
+                    <Button
+                      onClick={generateBusinessNames}
+                      disabled={isGeneratingNames || (!businessDescription.trim() && !businessNameIdea.trim())}
+                      size="sm"
+                      variant="outline"
+                      data-testid="button-generate-names"
+                    >
+                      {isGeneratingNames ? "Generating..." : "Generate Names"}
+                    </Button>
+                  </div>
+                  
+                  {generatedNames.length === 0 && !isGeneratingNames && (
+                    <div className="p-4 border rounded-md text-center text-muted-foreground">
+                      <div className="space-y-2">
+                        <p>Click "Generate Names" to get AI-powered suggestions</p>
+                        <p className="text-xs">
+                          {businessNameIdea.trim() 
+                            ? `Based on your idea "${businessNameIdea}" and business description`
+                            : "Based on your business description"
                           }
                         </p>
                       </div>
-                    )}
-
-                    {generatedNames.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="text-xs text-muted-foreground mb-2">
-                          {businessNameIdea.trim()
-                            ? `Variations based on "${businessNameIdea}"`
-                            : "Names based on your business description"
-                          }
-                        </div>
-                        {generatedNames.map((name, index) => (
-                          <button
-                            key={index}
-                            onClick={() => setBusinessName(name)}
-                            className={`w-full p-3 text-left border rounded-md hover-elevate ${businessName === name ? 'border-primary bg-primary/10' : 'border-border'}`}
-                            data-testid={`button-select-name-${index}`}
-                          >
-                            <span className="font-medium">{name}</span>
-                          </button>
-                        ))}
-                        <div className="pt-2">
-                          <label className="text-xs font-medium text-muted-foreground mb-2 block">Or enter a completely different name:</label>
-                          <input
-                            type="text"
-                            placeholder="Enter your preferred business name"
-                            value={generatedNames.includes(businessName) ? "" : businessName}
-                            onChange={(e) => setBusinessName(e.target.value)}
-                            className="w-full p-2 text-sm border rounded-md"
-                            data-testid="input-custom-business-name"
-                          />
-                        </div>
+                    </div>
+                  )}
+                  
+                  {isGeneratingNames && (
+                    <div className="p-4 border rounded-md text-center">
+                      <Sparkles className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
+                      <p className="text-sm text-muted-foreground">
+                        {businessNameIdea.trim() 
+                          ? `Generating creative variations of "${businessNameIdea}"...`
+                          : "Generating creative names for your business..."
+                        }
+                      </p>
+                    </div>
+                  )}
+                  
+                  {generatedNames.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-xs text-muted-foreground mb-2">
+                        {businessNameIdea.trim() 
+                          ? `Variations based on "${businessNameIdea}"`
+                          : "Names based on your business description"
+                        }
                       </div>
-                    )}
-                  </div>
-                )}
+                      {generatedNames.map((name, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setBusinessName(name)}
+                          className={`w-full p-3 text-left border rounded-md hover-elevate ${businessName === name ? 'border-primary bg-primary/10' : 'border-border'}`}
+                          data-testid={`button-select-name-${index}`}
+                        >
+                          <span className="font-medium">{name}</span>
+                        </button>
+                      ))}
+                      <div className="pt-2">
+                        <label className="text-xs font-medium text-muted-foreground mb-2 block">Or enter a completely different name:</label>
+                        <input
+                          type="text"
+                          placeholder="Enter your preferred business name"
+                          value={generatedNames.includes(businessName) ? "" : businessName}
+                          onChange={(e) => setBusinessName(e.target.value)}
+                          className="w-full p-2 text-sm border rounded-md"
+                          data-testid="input-custom-business-name"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
-                {/* AI Suggestion */}
-                {businessName && businessDescription && (
-                  <div className="p-4 bg-primary/10 rounded-lg">
-                    <p className="text-sm">
-                      <strong>AI Insight:</strong> Based on "{businessName}" and your business description, we suggest focusing on professional credibility and clear service communication in your website design.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              {/* AI Suggestion */}
+              {businessName && businessDescription && (
+                <div className="p-4 bg-primary/10 rounded-lg">
+                  <p className="text-sm">
+                    <strong>AI Insight:</strong> Based on "{businessName}" and your business description, we suggest focusing on professional credibility and clear service communication in your website design.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
           </div>
         );
 
@@ -2070,7 +2063,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                 {/* Choice Cards - Upload vs Generate */}
                 {!logoPath && (
                   <div className="grid gap-4 md:grid-cols-2">
-                    <Card
+                    <Card 
                       className="p-4 cursor-pointer border-2 hover-elevate transition-all"
                       onClick={() => setLogoPath('upload')}
                       data-testid="button-logo-path-upload"
@@ -2083,7 +2076,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         </div>
                       </div>
                     </Card>
-                    <Card
+                    <Card 
                       className="p-4 cursor-pointer border-2 hover-elevate transition-all"
                       onClick={() => setLogoPath('generate')}
                       data-testid="button-logo-path-generate"
@@ -2104,9 +2097,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium">Upload Your Logo</h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
                         onClick={() => setLogoPath(null)}
                         data-testid="button-change-logo-path"
                       >
@@ -2165,7 +2158,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
               <CardTitle>Website Purpose</CardTitle>
             </CardHeader>
             <CardContent>
-              <SiteTypeSelector
+              <SiteTypeSelector 
                 selectedType={selectedSiteType}
                 onTypeSelect={setSelectedSiteType}
               />
@@ -2185,7 +2178,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                 onPagesUpdate={setPages}
                 suggestedPages={suggestedPages}
               />
-
+              
               {/* Core Website Features Section */}
               <div className="border-t pt-6">
                 <div className="space-y-4">
@@ -2195,11 +2188,11 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                       Select the essential features you'd like to include on your website
                     </p>
                   </div>
-
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[
                       'Newsletter Signup',
-                      'Search Functionality',
+                      'Search Functionality', 
                       'Contact Form',
                       'Contact Form with Conditional Logic',
                       'Blog / News Section',
@@ -2256,9 +2249,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                     {/* Content Style */}
                     <div>
                       <label className="text-sm font-medium mb-2 block">Content Style</label>
-                      <Select
-                        value={contentPreferences.style}
-                        onValueChange={(value: 'text-heavy' | 'visual-focused' | 'balanced') =>
+                      <Select 
+                        value={contentPreferences.style} 
+                        onValueChange={(value: 'text-heavy' | 'visual-focused' | 'balanced') => 
                           setContentPreferences(prev => ({ ...prev, style: value }))
                         }
                       >
@@ -2276,9 +2269,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                     {/* Tone */}
                     <div>
                       <label className="text-sm font-medium mb-2 block">Tone</label>
-                      <Select
-                        value={contentPreferences.tone}
-                        onValueChange={(value: 'professional' | 'casual' | 'friendly' | 'authoritative') =>
+                      <Select 
+                        value={contentPreferences.tone} 
+                        onValueChange={(value: 'professional' | 'casual' | 'friendly' | 'authoritative') => 
                           setContentPreferences(prev => ({ ...prev, tone: value }))
                         }
                       >
@@ -2299,7 +2292,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                       <Checkbox
                         id="use-video"
                         checked={contentPreferences.useVideo}
-                        onCheckedChange={(checked) =>
+                        onCheckedChange={(checked) => 
                           setContentPreferences(prev => ({ ...prev, useVideo: !!checked }))
                         }
                         data-testid="checkbox-use-video"
@@ -2319,10 +2312,10 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
               {/* Generate Button */}
               <div className="text-center">
-                <Button
-                  onClick={generateContent}
+                <Button 
+                  onClick={generateContent} 
                   disabled={isGeneratingContent}
-                  className="gap-2"
+                  className="gap-2" 
                   data-testid="button-generate-content"
                 >
                   {isGeneratingContent ? (
@@ -2343,7 +2336,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                   </p>
                 )}
               </div>
-
+              
               {/* Enhanced Content Editor Display */}
               <div className="grid gap-6">
                 {pages.map((page) => {
@@ -2495,7 +2488,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                       </FormItem>
                     )}
                   />
-
+                  
                   {crmIntegration.selectedCrms.includes('custom') && (
                     <FormField
                       control={crmForm.control}
@@ -2524,7 +2517,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                       )}
                     />
                   )}
-
+                  
                   <div className="border-t pt-6 mt-6">
                     <FormField
                       control={crmForm.control}
@@ -2570,7 +2563,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         </FormItem>
                       )}
                     />
-
+                    
                     {crmIntegration.selectedMarketingAutomation.includes('custom') && (
                       <FormField
                         control={crmForm.control}
@@ -2599,7 +2592,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         )}
                       />
                     )}
-
+                    
                     <div className="border-t pt-6 mt-6">
                       <FormField
                         control={crmForm.control}
@@ -2645,7 +2638,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                           </FormItem>
                         )}
                       />
-
+                      
                       {crmIntegration.selectedPaymentGateways.includes('custom') && (
                         <FormField
                           control={crmForm.control}
@@ -2675,7 +2668,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         />
                       )}
                     </div>
-
+                    
                     <div className="border-t pt-6 mt-6">
                       <FormField
                         control={crmForm.control}
@@ -2703,7 +2696,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         )}
                       />
                     </div>
-
+                    
                     <div className="border-t pt-6 mt-6">
                       <FormField
                         control={crmForm.control}
@@ -2744,7 +2737,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         )}
                       />
                     </div>
-
+                    
                     <div className="border-t pt-6 mt-6">
                       <FormField
                         control={crmForm.control}
@@ -2790,7 +2783,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         )}
                       />
                     </div>
-
+                    
                     {/* Advanced Features Separator */}
                     <div className="border-t pt-6">
                       <FormField
@@ -2905,7 +2898,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             <CardContent>
               <Form {...membershipForm}>
                 <form onSubmit={membershipForm.handleSubmit(onMembershipSubmit)} className="space-y-6">
-
+                  
                   {/* Registration & Login */}
                   <FormField
                     control={membershipForm.control}
@@ -3042,7 +3035,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         Add custom roles specific to your organization with detailed descriptions
                       </p>
                     </div>
-
+                    
                     {userAccountsMembership.customRoles.map((role, index) => (
                       <div key={index} className="border rounded-lg p-4 space-y-3">
                         <div className="flex justify-between items-start">
@@ -3061,7 +3054,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                             Remove
                           </Button>
                         </div>
-
+                        
                         <div className="grid gap-3">
                           <div>
                             <Label htmlFor={`custom-role-name-${index}`}>Role Name</Label>
@@ -3078,7 +3071,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                               data-testid={`input-custom-role-name-${index}`}
                             />
                           </div>
-
+                          
                           <div>
                             <Label htmlFor={`custom-role-description-${index}`}>Role Description & Responsibilities</Label>
                             <Textarea
@@ -3098,7 +3091,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         </div>
                       </div>
                     ))}
-
+                    
                     <Button
                       type="button"
                       variant="outline"
@@ -3179,7 +3172,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
               </p>
             </CardHeader>
             <CardContent className="space-y-8">
-
+              
               {/* Logo Requirements */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Logo Requirements</h3>
@@ -3198,9 +3191,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                             name="logoNeeds"
                             value={option.value}
                             checked={imageRequirements.logoNeeds === option.value}
-                            onChange={(e) => setImageRequirements(prev => ({
-                              ...prev,
-                              logoNeeds: e.target.value as any
+                            onChange={(e) => setImageRequirements(prev => ({ 
+                              ...prev, 
+                              logoNeeds: e.target.value as any 
                             }))}
                             className="mt-1"
                             data-testid={`radio-logo-needs-${option.value}`}
@@ -3213,7 +3206,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                       ))}
                     </div>
                   </div>
-
+                  
                   {imageRequirements.logoNeeds === 'need-logo' && (
                     <div>
                       <label className="text-sm font-medium mb-2 block">
@@ -3222,9 +3215,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                       <Textarea
                         placeholder="Describe your logo vision, preferred colors, symbols, or style"
                         value={imageRequirements.logoDescription || ''}
-                        onChange={(e) => setImageRequirements(prev => ({
-                          ...prev,
-                          logoDescription: e.target.value
+                        onChange={(e) => setImageRequirements(prev => ({ 
+                          ...prev, 
+                          logoDescription: e.target.value 
                         }))}
                         className="min-h-[80px]"
                         data-testid="textarea-logo-description"
@@ -3246,9 +3239,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                     <label key={photoType.key} className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover-elevate">
                       <Checkbox
                         checked={imageRequirements[photoType.key as keyof ImageRequirements] as boolean}
-                        onCheckedChange={(checked) => setImageRequirements(prev => ({
-                          ...prev,
-                          [photoType.key]: checked
+                        onCheckedChange={(checked) => setImageRequirements(prev => ({ 
+                          ...prev, 
+                          [photoType.key]: checked 
                         }))}
                         data-testid={`checkbox-${photoType.key}`}
                       />
@@ -3267,9 +3260,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                 <Textarea
                   placeholder="List any other specific images you need (e.g., 'photos of our manufacturing process', 'before/after examples', 'event photos')"
                   value={imageRequirements.specificImages?.join('\n') || ''}
-                  onChange={(e) => setImageRequirements(prev => ({
-                    ...prev,
-                    specificImages: e.target.value.split('\n').filter(line => line.trim())
+                  onChange={(e) => setImageRequirements(prev => ({ 
+                    ...prev, 
+                    specificImages: e.target.value.split('\n').filter(line => line.trim()) 
                   }))}
                   className="min-h-[100px]"
                   data-testid="textarea-specific-images"
@@ -3294,9 +3287,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                         name="photoStyle"
                         value={style.value}
                         checked={imageRequirements.preferredPhotoStyle === style.value}
-                        onChange={(e) => setImageRequirements(prev => ({
-                          ...prev,
-                          preferredPhotoStyle: e.target.value as any
+                        onChange={(e) => setImageRequirements(prev => ({ 
+                          ...prev, 
+                          preferredPhotoStyle: e.target.value as any 
                         }))}
                         className="mt-1"
                         data-testid={`radio-photo-style-${style.value}`}
@@ -3329,9 +3322,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                           name="stockPhotoPreference"
                           value={option.value}
                           checked={imageRequirements.stockPhotoPreference === option.value}
-                          onChange={(e) => setImageRequirements(prev => ({
-                            ...prev,
-                            stockPhotoPreference: e.target.value as any
+                          onChange={(e) => setImageRequirements(prev => ({ 
+                            ...prev, 
+                            stockPhotoPreference: e.target.value as any 
                           }))}
                           className="mt-1"
                           data-testid={`radio-stock-preference-${option.value}`}
@@ -3415,9 +3408,9 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
                 <Textarea
                   placeholder="Any other image-related requirements, preferences, or special considerations"
                   value={imageRequirements.additionalNotes || ''}
-                  onChange={(e) => setImageRequirements(prev => ({
-                    ...prev,
-                    additionalNotes: e.target.value
+                  onChange={(e) => setImageRequirements(prev => ({ 
+                    ...prev, 
+                    additionalNotes: e.target.value 
                   }))}
                   className="min-h-[80px]"
                   data-testid="textarea-additional-notes"
@@ -3452,7 +3445,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             preferences.secondaryColor,
             preferences.accentColor
           ].filter((color): color is string => Boolean(color && color.trim() && color !== ""));
-
+          
           if (individualColors.length > 0) {
             return individualColors.slice(0, 3); // Return up to 3 colors
           }
@@ -3472,32 +3465,32 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             'black': '#1F2937',
             'white': '#F9FAFB'
           };
-
+          
           const foundColors: string[] = [];
           const notesLower = notes.toLowerCase();
-
+          
           // Check for color keywords in notes
           Object.entries(colorKeywords).forEach(([keyword, hex]) => {
             if (notesLower.includes(keyword)) {
               foundColors.push(hex);
             }
           });
-
+          
           // If forest green specifically mentioned, prioritize it
           if (notesLower.includes('forest green')) {
             return ['#228B22', '#2F7D32']; // Forest green variations
           }
-
+          
           // If grey/gray specifically mentioned, prioritize it
           if (notesLower.includes('grey') || notesLower.includes('gray')) {
             return ['#6B7280', '#4B5563']; // Grey variations
           }
-
+          
           // Return found colors or style-based defaults
           if (foundColors.length > 0) {
             return foundColors.slice(0, 2); // Max 2 colors
           }
-
+          
           // Default colors based on design style
           switch (designPreferences.selectedStyle) {
             case 'luxury': return ['#1F2937', '#D4AF37'];
@@ -3584,11 +3577,11 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       <div className="mb-8">
         <ProgressBar currentStep={currentStep} steps={stepData} />
       </div>
-
+      
       <div className="mb-8">
         {renderStepContent()}
       </div>
-
+      
       <div className="flex justify-between items-center">
         <Button
           variant="outline"
@@ -3600,7 +3593,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
           <ArrowLeft className="w-4 h-4" />
           Previous
         </Button>
-
+        
         <div className="text-sm text-muted-foreground">
           {currentStep === 11 ? (
             <span>Ready to submit your creative brief</span>
@@ -3610,7 +3603,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
             </span>
           )}
         </div>
-
+        
         {currentStep === 11 ? (
           <Button
             onClick={submitProject}

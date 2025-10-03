@@ -1,3 +1,8 @@
+import dotenv from "dotenv";
+
+// Load environment variables from .env file (for local development)
+dotenv.config();
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -60,13 +65,16 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '3000', 10);
+  const port = parseInt(process.env.PORT || '5000', 10);
   
   // Configure server options based on environment
   const isReplit = process.env.REPLIT || process.env.REPL_ID;
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   const listenOptions: any = {
     port,
-    host: isReplit ? "0.0.0.0" : "localhost",
+    // Bind to 0.0.0.0 in production or Replit, localhost for local dev
+    host: isProduction || isReplit ? "0.0.0.0" : "localhost",
   };
   
   // Only use reusePort on Replit where it's supported
