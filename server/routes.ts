@@ -5,7 +5,7 @@ import OpenAI from "openai";
 import { logoGenerationRequestSchema, type GeneratedLogo, contentGenerationRequestSchema, pageRegenerationRequestSchema, projectSubmissionSchema, type ProjectSubmission, featureSelectionSchema, insertFeatureSelectionSchema, insertProjectSubmissionSchema } from "../shared/schema";
 
 // OpenAI integration - the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: import.meta.env.OPENAI_API_KEY });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint for Render
