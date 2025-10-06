@@ -1753,7 +1753,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
   };
 
   const submitProject = async () => {
-   // console.log('Submitting project...');
+    console.log('Submitting project...');
     
     try {
       // Prepare submission data
@@ -1774,9 +1774,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
       };
 
       // Submit to backend
-     const response = await apiRequest('POST', '/api/project/submit', submissionData);
-     
-      //const response = await apiRequest('POST', import.meta.env.VITE_API_URL, submissionData);
+      const response = await apiRequest('POST', '/api/project/submit', submissionData);
 
       if (!response.ok) {
         const error = await response.json();
