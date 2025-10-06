@@ -1775,6 +1775,7 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
 
       // Submit to backend
      // const response = await apiRequest('POST', '/api/project/submit', submissionData);
+     console.log(import.meta.env.VITE_API_URL)
       const response = await apiRequest('POST', import.meta.env.VITE_API_URL, submissionData);
 
       if (!response.ok) {
