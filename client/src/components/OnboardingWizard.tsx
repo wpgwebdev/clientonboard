@@ -1773,8 +1773,8 @@ export default function OnboardingWizard({ className = "" }: OnboardingWizardPro
         designPreferences
       };
 
-      // Submit to backend
-      const response = await apiRequest('POST', '/api/project/submit', submissionData);
+      //const response = await apiRequest('POST', '/api/project/submit', submissionData);
+      const response = await apiRequest('POST', import.meta.env.VITE_API_URL, submissionData);
 
       if (!response.ok) {
         const error = await response.json();

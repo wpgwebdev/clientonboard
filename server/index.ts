@@ -74,8 +74,8 @@ app.use((req, res, next) => {
   const listenOptions: any = {
     port,
     // Bind to 0.0.0.0 in production or Replit, localhost for local dev
-    //host: isProduction || isReplit ? "0.0.0.0" : "localhost",
-   host: "0.0.0.0" ,
+  //  host: isProduction || isReplit ? "0.0.0.0" : "localhost",
+    host: "0.0.0.0" ,
   };
   
   // Only use reusePort on Replit where it's supported
